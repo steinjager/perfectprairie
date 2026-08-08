@@ -142,6 +142,25 @@ h2 { margin-bottom: 0; font-size: clamp(3rem, 6.1vw, 6.4rem); }
 .about-copy { align-self: center; }
 .about-copy .text-link { margin-top: 20px; }
 
+.facebook-portal { overflow: hidden; background: var(--forest-deep); color: white; }
+.facebook-portal-heading { display: grid; grid-template-columns: 1.12fr .88fr; gap: 10vw; align-items: end; }
+.facebook-portal-heading h2 { font-size: clamp(3.7rem, 6.5vw, 7rem); }
+.facebook-portal-heading h2 em { color: var(--sun); font-weight: 400; }
+.facebook-portal-heading .eyebrow { display: flex; align-items: center; gap: 10px; }
+.portal-pulse { width: 8px; height: 8px; background: var(--sun); border-radius: 50%; box-shadow: 0 0 0 6px rgba(228,213,52,.12); }
+.facebook-portal-intro { padding-bottom: 8px; }
+.facebook-portal-intro .lead { margin-bottom: 18px; color: white; }
+.facebook-portal-intro > p:not(.lead) { max-width: 580px; color: rgba(255,255,255,.62); }
+.facebook-portal-intro .text-link { margin-top: 22px; }
+.facebook-portal-track { display: flex; gap: 28px; margin: 80px -5vw 0; padding: 0 5vw 30px; overflow-x: auto; overscroll-behavior-inline: contain; scroll-snap-type: inline mandatory; scrollbar-color: var(--sun) rgba(255,255,255,.12); scrollbar-width: thin; }
+.facebook-post { flex: 0 0 min(500px, 82vw); scroll-snap-align: start; overflow: hidden; background: #f0f2f5; border: 1px solid rgba(255,255,255,.2); box-shadow: 0 22px 60px rgba(0,0,0,.22); }
+.facebook-post-bar { min-height: 58px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 17px; padding: 0 20px; background: var(--paper); color: var(--forest-deep); border-bottom: 1px solid rgba(22,38,29,.14); font-size: .63rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+.facebook-post-bar > span:first-child { color: var(--moss); font-family: var(--serif); font-size: .9rem; font-style: italic; }
+.facebook-post-bar i { width: 9px; height: 9px; background: #42b72a; border-radius: 50%; box-shadow: 0 0 0 4px rgba(66,183,42,.12); }
+.facebook-embed { overflow: hidden; background: #f0f2f5; }
+.facebook-embed iframe { display: block; width: 100%; max-width: 500px; border: 0; background: #f0f2f5; }
+.facebook-portal-note { margin: 20px 0 0; color: rgba(255,255,255,.42); font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; }
+
 .estimate { display: grid; grid-template-columns: .8fr 1.2fr; min-height: 850px; background: var(--forest); color: white; }
 .estimate-intro { padding: clamp(80px, 9vw, 140px) 5vw; background: var(--forest-deep); }
 .estimate h2 { margin-bottom: 34px; font-size: clamp(3.2rem, 5.5vw, 6rem); }
@@ -192,7 +211,7 @@ footer { display: grid; grid-template-columns: 1.5fr .5fr; padding: 70px 5vw 30p
   .hero-content { width: 100%; padding: 90px 6vw 80px; }
   .hero-note { display: none; }
   .field-note { justify-content: flex-start; }
-  .intro-grid, .feature, .about, .estimate, .rewild-heading { grid-template-columns: 1fr; }
+  .intro-grid, .feature, .about, .estimate, .rewild-heading, .facebook-portal-heading { grid-template-columns: 1fr; }
   .prairie-story-heading, .prairie-history { grid-template-columns: 1fr; }
   .intro-grid { gap: 45px; }
   .services { grid-template-columns: 1fr; }
@@ -213,6 +232,8 @@ footer { display: grid; grid-template-columns: 1.5fr .5fr; padding: 70px 5vw 30p
   .step { border-bottom: 1px solid rgba(255,255,255,.2); }
   .about { gap: 60px; }
   .about-portrait { width: min(520px, 82vw); min-height: 700px; }
+  .facebook-portal-heading { gap: 42px; }
+  .facebook-portal-track { margin-top: 60px; }
   .estimate-intro { padding-bottom: 80px; }
   .contact-lines { margin-top: 50px; }
   footer { grid-template-columns: 1fr; gap: 55px; }
@@ -243,6 +264,8 @@ footer { display: grid; grid-template-columns: 1.5fr .5fr; padding: 70px 5vw 30p
   .prairie-history-image { min-height: 390px; margin: 18px 18px 0; }
   .prairie-history-copy { padding: 65px 7vw; }
   .about-portrait { width: 100%; min-height: 570px; border-radius: 90px 90px 0 0; }
+  .facebook-portal-track { margin-left: -6vw; margin-right: -6vw; padding-left: 6vw; padding-right: 6vw; gap: 18px; }
+  .facebook-post { flex-basis: max(350px, 88vw); }
   .steps { grid-template-columns: 1fr; margin-top: 60px; }
   .step, .step + .step { min-height: auto; padding: 25px 0 35px; border-right: 0; }
   .step h3 { margin-top: 38px; }

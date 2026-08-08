@@ -26,6 +26,13 @@ test("server-renders the Perfect Prairie template", async () => {
   assert.match(html, /Prairie \+ wildflower plots/);
   assert.match(html, /Not just flowers/);
   assert.match(html, /Wild by nature/);
+  assert.match(html, /The Prairie/);
+  assert.match(html, /Portal/);
+  assert.equal((html.match(/<iframe\b/g) ?? []).length, 3);
+  assert.match(html, /pfbid0haCffLQwuyRRrxavxTRG148b59/);
+  assert.match(html, /pfbid038Fj6ZSwViBePGszEXrwZkZCVu/);
+  assert.match(html, /pfbid02LtCZwCVBZ9UxXzCziJAoWQCC/);
+  assert.match(html, /loading="lazy"/);
   assert.doesNotMatch(html, /Emma|Galena|Perfect Prairies/);
   assert.match(html, /Request an estimate/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape/);

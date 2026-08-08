@@ -8,6 +8,11 @@ The website for Perfect Prairie, a Central Illinois native-landscape business of
 
 The site runs on vinext and deploys to a Cloudflare Worker.
 
+## Project context
+
+- [`SOUL.md`](SOUL.md) captures Emma’s mission, worldview, public voice, and visual character.
+- [`AGENTS.md`](AGENTS.md) contains the operating rules for future coding and content agents working in this repository.
+
 ## Local development
 
 Requires Node.js 22.13 or newer.

@@ -32,6 +32,21 @@ const steps = [
   ["04", "Help it thrive", "You get straightforward watering and maintenance guidance for the establishment years and the seasons beyond."],
 ];
 
+const facebookPosts = [
+  {
+    src: "https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Fpermalink.php%3Fstory_fbid%3Dpfbid0haCffLQwuyRRrxavxTRG148b59MWRXm3fisgwNumzpWMGu1s3mxCWwQShVPFD2xQl%26id%3D61576453635334&show_text=true&width=500",
+    height: 756,
+  },
+  {
+    src: "https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Fpermalink.php%3Fstory_fbid%3Dpfbid038Fj6ZSwViBePGszEXrwZkZCVuKxNLdy8FyMoxAFuZcriCckp8Wbrha5qWUFA5G2Bl%26id%3D61576453635334&show_text=true&width=500",
+    height: 715,
+  },
+  {
+    src: "https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Fpermalink.php%3Fstory_fbid%3Dpfbid02LtCZwCVBZ9UxXzCziJAoWQCCBijBzTTjjV5cycqBuCQtqG4hZ6Gq4SQw2iMJ8iwLl%26id%3D61576453635334&show_text=true&width=500",
+    height: 632,
+  },
+];
+
 export default function Home() {
   return (
     <main>
@@ -205,6 +220,46 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="facebook-portal section-pad" id="field-notes">
+        <div className="facebook-portal-heading">
+          <div>
+            <p className="eyebrow light"><span className="portal-pulse" aria-hidden="true" /> Live from the field</p>
+            <h2>The Prairie<br /><em>Portal.</em></h2>
+          </div>
+          <div className="facebook-portal-intro">
+            <p className="lead">What we&apos;re planting, noticing, and imagining for Central Illinois.</p>
+            <p>Follow the work as it grows—from our own three-acre prairie to the ordinary strips of land that could become habitat next.</p>
+            <a className="text-link light" href="https://www.facebook.com/people/Perfect-Prairie/61576453635334/" target="_blank" rel="noreferrer">Enter the full feed <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+
+        <div className="facebook-portal-track" aria-label="Recent Perfect Prairie Facebook posts">
+          {facebookPosts.map((post, index) => (
+            <article className="facebook-post" key={post.src}>
+              <div className="facebook-post-bar">
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <span>Perfect Prairie · Field note</span>
+                <i aria-hidden="true" />
+              </div>
+              <div className="facebook-embed">
+                <iframe
+                  src={post.src}
+                  width="500"
+                  height={post.height}
+                  title={`Perfect Prairie Facebook field note ${index + 1} of ${facebookPosts.length}`}
+                  loading="lazy"
+                  scrolling="no"
+                  frameBorder="0"
+                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+            </article>
+          ))}
+        </div>
+        <p className="facebook-portal-note">Posts load directly from Facebook. Swipe or scroll to explore the field notes.</p>
+      </section>
+
       <section className="estimate" id="estimate">
         <div className="estimate-intro">
           <p className="eyebrow light">Start a conversation</p>
@@ -225,7 +280,7 @@ export default function Home() {
           <p>Consultation, native landscape design and installation, and prairie or wildflower plots for Central Illinois.</p>
         </div>
         <div className="footer-links">
-          <div><span>Explore</span><a href="#services">Services</a><a href="#vision">Vision</a><a href="#process">Process</a></div>
+          <div><span>Explore</span><a href="#services">Services</a><a href="#vision">Vision</a><a href="#process">Process</a><a href="#field-notes">Field notes</a></div>
           <div><span>Connect</span><a href="mailto:contact@perfectprairie.com">Email</a><a href="tel:+13096132016">Call or text</a><a href="https://www.facebook.com/people/Perfect-Prairie/61576453635334/" target="_blank" rel="noreferrer">Facebook</a></div>
         </div>
         <div className="footer-bottom"><span>© {new Date().getFullYear()} Perfect Prairie</span><span>Less lawn. More habitat.</span></div>
