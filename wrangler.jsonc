@@ -1,0 +1,27 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "perfect-prairie",
+  "compatibility_date": "2026-05-22",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "main": "./worker/index.ts",
+  "routes": [
+    {
+      "pattern": "perfectprairie.com/*",
+      "zone_name": "perfectprairie.com"
+    },
+    {
+      "pattern": "www.perfectprairie.com/*",
+      "zone_name": "perfectprairie.com"
+    }
+  ],
+  "assets": {
+    "directory": "dist/client",
+    "not_found_handling": "none",
+    "binding": "ASSETS"
+  },
+  "images": {
+    "binding": "IMAGES"
+  }
+}
