@@ -71,7 +71,7 @@ export default function Home() {
     <main>
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Perfect Prairie home">
-          <span className="brand-mark" aria-hidden="true">✺</span>
+          <Image className="brand-logo" src="/images/perfect-prairie-logo.png" alt="" width={54} height={52} priority unoptimized />
           <span>Perfect Prairie</span>
         </a>
         <nav aria-label="Main navigation">

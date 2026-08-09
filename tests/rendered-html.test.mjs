@@ -20,6 +20,7 @@ test("server-renders the Perfect Prairie template", async () => {
 
   const html = await response.text();
   assert.match(html, /Perfect Prairie/);
+  assert.match(html, /images\/perfect-prairie-logo\.png/);
   assert.match(html, /Less lawn/);
   assert.match(html, /On-site consultations/);
   assert.match(html, /Native landscape design \+ installation/);
