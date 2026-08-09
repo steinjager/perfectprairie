@@ -60,9 +60,12 @@ h2 { margin-bottom: 0; font-size: clamp(3rem, 6.1vw, 6.4rem); }
 .intro-grid p:last-child, .about-copy > p:not(.lead) { color: #526058; }
 
 .services { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--forest); color: white; border-top: 1px solid rgba(255,255,255,.15); }
-.service-card { min-height: 680px; display: flex; flex-direction: column; padding: 55px 3.5vw 45px; border-right: 1px solid rgba(255,255,255,.17); transition: background .3s ease; }
+.service-card { min-height: 760px; display: flex; flex-direction: column; padding: 24px 2.2vw 42px; border-right: 1px solid rgba(255,255,255,.17); transition: background .3s ease; }
 .service-card:hover { background: rgba(255,255,255,.055); }
 .service-card:last-child { border-right: 0; }
+.service-visual { position: relative; min-height: 255px; margin-bottom: 34px; overflow: hidden; border-radius: 88px 0 0 0; background: var(--forest-deep); }
+.service-visual img { object-fit: cover; transition: transform .6s ease; }
+.service-card:hover .service-visual img { transform: scale(1.025); }
 .service-number { align-self: flex-end; color: rgba(255,255,255,.45); font-family: var(--serif); font-style: italic; }
 .service-card .eyebrow { color: var(--sun); margin-top: auto; }
 .service-card h3 { margin-bottom: 24px; font-family: var(--serif); font-size: clamp(2.2rem, 3.55vw, 4rem); font-weight: 400; line-height: 1; letter-spacing: -.04em; }
@@ -134,38 +137,37 @@ h2 { margin-bottom: 0; font-size: clamp(3rem, 6.1vw, 6.4rem); }
 .step h3 { margin: 70px 0 18px; font-family: var(--serif); font-size: 1.65rem; font-weight: 400; }
 .step p { color: rgba(255,255,255,.63); font-size: .92rem; }
 
-.about { display: grid; grid-template-columns: .78fr 1.22fr; gap: 9vw; align-items: center; background: var(--sun); }
-.about-portrait { min-height: 690px; position: relative; overflow: hidden; border-radius: 180px 180px 0 0; background: var(--forest); }
-.about-portrait img { object-fit: cover; object-position: 50% 42%; }
+.about { position: relative; display: block; overflow: hidden; background: var(--sun); }
+.about::after { content: "✺"; position: absolute; right: 3vw; bottom: -7vw; color: rgba(31,75,55,.1); font-size: clamp(12rem, 28vw, 30rem); line-height: .8; pointer-events: none; }
 .about h2 { max-width: 800px; margin-bottom: 38px; font-size: clamp(3.3rem, 5.2vw, 5.8rem); }
 .about .eyebrow { color: var(--forest); }
-.about-copy { align-self: center; }
+.about-copy { position: relative; z-index: 1; width: min(1080px, 82vw); margin-left: auto; padding: clamp(30px, 5vw, 80px) 6vw clamp(30px, 5vw, 80px) 0; border-left: 1px solid rgba(31,75,55,.25); padding-left: clamp(30px, 5vw, 80px); }
 .about-copy .text-link { margin-top: 20px; }
 
-.facebook-portal { overflow: hidden; padding-top: clamp(66px, 7vw, 100px); padding-bottom: clamp(70px, 7vw, 110px); background: var(--forest-deep); color: white; }
-.facebook-portal-heading { display: grid; grid-template-columns: 1.12fr .88fr; gap: 7vw; align-items: end; }
-.facebook-portal-heading h2 { max-width: 900px; font-size: clamp(3.5rem, 5.8vw, 6.2rem); }
-.facebook-portal-heading h2 em { color: var(--sun); font-weight: 400; }
-.facebook-portal-heading .eyebrow { display: flex; align-items: center; gap: 10px; }
-.portal-pulse { width: 8px; height: 8px; background: var(--sun); border-radius: 50%; box-shadow: 0 0 0 6px rgba(228,213,52,.12); }
-.facebook-portal-intro { padding-bottom: 8px; }
-.facebook-portal-intro .lead { margin-bottom: 18px; color: white; }
-.facebook-portal-intro > p:not(.lead) { max-width: 580px; color: rgba(255,255,255,.62); }
-.facebook-portal-intro .text-link { margin-top: 22px; }
-.field-window { display: grid; grid-template-columns: 1.55fr .72fr .72fr; gap: 14px; margin-top: 50px; }
-.field-window figure { min-height: 340px; position: relative; margin: 0; overflow: hidden; background: var(--forest); }
+.facebook-follow { overflow: hidden; padding-top: clamp(60px, 6vw, 88px); padding-bottom: clamp(60px, 6vw, 90px); background: var(--forest-deep); color: white; }
+.facebook-follow-heading { display: grid; grid-template-columns: 1.12fr .88fr; gap: 7vw; align-items: end; }
+.facebook-follow-heading h2 { max-width: 900px; font-size: clamp(3.35rem, 5.4vw, 5.8rem); }
+.facebook-follow-heading h2 em { color: var(--sun); font-weight: 400; }
+.facebook-follow-heading .eyebrow { display: flex; align-items: center; gap: 10px; }
+.facebook-pulse { width: 8px; height: 8px; background: #42b72a; border-radius: 50%; box-shadow: 0 0 0 6px rgba(66,183,42,.14); }
+.facebook-follow-intro { padding-bottom: 5px; }
+.facebook-follow-intro .lead { margin-bottom: 14px; color: white; }
+.facebook-follow-intro > p:not(.lead) { max-width: 580px; color: rgba(255,255,255,.62); }
+.facebook-follow-intro .button { margin-top: 14px; }
+.field-window { display: grid; grid-template-columns: 1.55fr .72fr .72fr; gap: 12px; margin-top: 38px; }
+.field-window figure { min-height: 290px; position: relative; margin: 0; overflow: hidden; background: var(--forest); }
 .field-window figure:first-child { border-radius: 120px 0 0 0; }
 .field-window img { object-fit: cover; }
 .field-window-wide img { object-position: center 45%; }
 .field-window figcaption { position: absolute; right: 14px; bottom: 14px; left: 14px; padding: 11px 13px; background: rgba(13,43,30,.82); color: white; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; backdrop-filter: blur(8px); }
-.facebook-portal-track { display: flex; gap: 28px; margin: 48px -5vw 0; padding: 0 5vw 30px; overflow-x: auto; overscroll-behavior-inline: contain; scroll-snap-type: inline mandatory; scrollbar-color: var(--sun) rgba(255,255,255,.12); scrollbar-width: thin; }
-.facebook-post { flex: 0 0 min(500px, 82vw); scroll-snap-align: start; overflow: hidden; background: #f0f2f5; border: 1px solid rgba(255,255,255,.2); box-shadow: 0 22px 60px rgba(0,0,0,.22); }
-.facebook-post-bar { min-height: 58px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 17px; padding: 0 20px; background: var(--paper); color: var(--forest-deep); border-bottom: 1px solid rgba(22,38,29,.14); font-size: .63rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+.facebook-follow-track { display: flex; gap: 18px; margin: 36px -5vw 0; padding: 0 5vw 24px; overflow-x: auto; overscroll-behavior-inline: contain; scroll-snap-type: inline mandatory; scrollbar-color: var(--sun) rgba(255,255,255,.12); scrollbar-width: thin; }
+.facebook-post { --embed-scale: .78; flex: 0 0 390px; scroll-snap-align: start; overflow: hidden; background: #f0f2f5; border: 1px solid rgba(255,255,255,.2); box-shadow: 0 16px 40px rgba(0,0,0,.2); }
+.facebook-post-bar { min-height: 48px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; padding: 0 16px; background: var(--paper); color: var(--forest-deep); border-bottom: 1px solid rgba(22,38,29,.14); font-size: .59rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .facebook-post-bar > span:first-child { color: var(--moss); font-family: var(--serif); font-size: .9rem; font-style: italic; }
-.facebook-post-bar i { width: 9px; height: 9px; background: #42b72a; border-radius: 50%; box-shadow: 0 0 0 4px rgba(66,183,42,.12); }
-.facebook-embed { overflow: hidden; background: #f0f2f5; }
-.facebook-embed iframe { display: block; width: 100%; max-width: 500px; border: 0; background: #f0f2f5; }
-.facebook-portal-note { margin: 20px 0 0; color: rgba(255,255,255,.42); font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; }
+.facebook-post-bar a { padding-bottom: 2px; border-bottom: 1px solid currentColor; }
+.facebook-embed { height: 430px; overflow: hidden; background: #f0f2f5; }
+.facebook-embed iframe { display: block; width: 500px; max-width: none; border: 0; background: #f0f2f5; transform: scale(var(--embed-scale)); transform-origin: top left; }
+.facebook-follow-note { margin: 16px 0 0; color: rgba(255,255,255,.46); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; }
 
 .estimate { display: grid; grid-template-columns: .8fr 1.2fr; min-height: 850px; background: var(--forest); color: white; }
 .estimate-intro { padding: clamp(80px, 9vw, 140px) 5vw; background: var(--forest-deep); }
@@ -217,11 +219,12 @@ footer { display: grid; grid-template-columns: 1.5fr .5fr; padding: 70px 5vw 30p
   .hero-content { width: 100%; padding: 78px 6vw 68px; }
   .hero-note { display: none; }
   .field-note { justify-content: flex-start; }
-  .intro-grid, .feature, .about, .estimate, .rewild-heading, .facebook-portal-heading { grid-template-columns: 1fr; }
+  .intro-grid, .feature, .about, .estimate, .rewild-heading, .facebook-follow-heading { grid-template-columns: 1fr; }
   .prairie-story-heading, .prairie-history { grid-template-columns: 1fr; }
   .intro-grid { gap: 45px; }
   .services { grid-template-columns: 1fr; }
-  .service-card { min-height: 480px; border-right: 0; border-bottom: 1px solid rgba(255,255,255,.17); }
+  .service-card { min-height: 680px; border-right: 0; border-bottom: 1px solid rgba(255,255,255,.17); }
+  .service-visual { min-height: 360px; }
   .feature-photo { min-height: 640px; }
   .rewild-heading { gap: 42px; }
   .rewild-gallery { grid-template-columns: 1fr; gap: 58px; }
@@ -236,13 +239,12 @@ footer { display: grid; grid-template-columns: 1.5fr .5fr; padding: 70px 5vw 30p
   .steps { grid-template-columns: 1fr 1fr; }
   .step:nth-child(2) { border-right: 0; }
   .step { border-bottom: 1px solid rgba(255,255,255,.2); }
-  .about { gap: 60px; }
-  .about-portrait { width: min(520px, 82vw); min-height: 700px; }
-  .facebook-portal-heading { gap: 42px; }
+  .about-copy { width: min(1080px, 94vw); }
+  .facebook-follow-heading { gap: 38px; }
   .field-window { grid-template-columns: 1.35fr 1fr; }
   .field-window figure { min-height: 360px; }
   .field-window figure:last-child { display: none; }
-  .facebook-portal-track { margin-top: 60px; }
+  .facebook-follow-track { margin-top: 34px; }
   .estimate-intro { padding-bottom: 80px; }
   .contact-lines { margin-top: 50px; }
   footer { grid-template-columns: 1fr; gap: 55px; }
@@ -259,7 +261,8 @@ footer { display: grid; grid-template-columns: 1.5fr .5fr; padding: 70px 5vw 30p
   .section-pad { padding-left: 6vw; padding-right: 6vw; }
   h2 { font-size: 3.15rem; }
   .field-note { min-height: 58px; }
-  .service-card { padding: 45px 7vw; }
+  .service-card { min-height: 650px; padding: 18px 6vw 42px; }
+  .service-visual { min-height: 300px; margin-bottom: 28px; border-radius: 76px 0 0 0; }
   .feature { gap: 70px; }
   .feature-photo { min-height: 500px; border-radius: 90px 90px 0 0; }
   .rewild-gallery-main .rewild-image { aspect-ratio: .92; border-radius: 90px 0 0 0; }
@@ -272,13 +275,14 @@ footer { display: grid; grid-template-columns: 1.5fr .5fr; padding: 70px 5vw 30p
   .prairie-history { margin-left: -6vw; margin-right: -6vw; }
   .prairie-history-image { min-height: 390px; margin: 18px 18px 0; }
   .prairie-history-copy { padding: 65px 7vw; }
-  .about-portrait { width: 100%; min-height: 570px; border-radius: 90px 90px 0 0; }
-  .facebook-portal-track { margin-left: -6vw; margin-right: -6vw; padding-left: 6vw; padding-right: 6vw; gap: 18px; }
+  .about-copy { width: 100%; padding: 24px 0 24px 24px; }
+  .facebook-follow-track { margin-left: -6vw; margin-right: -6vw; padding-left: 6vw; padding-right: 6vw; gap: 14px; }
   .field-window { grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 38px; }
   .field-window figure { min-height: 270px; }
   .field-window figure:first-child { grid-column: 1 / -1; min-height: 300px; border-radius: 70px 0 0 0; }
   .field-window figure:last-child { display: block; }
-  .facebook-post { flex-basis: max(350px, 88vw); }
+  .facebook-post { --embed-scale: .68; flex-basis: 340px; }
+  .facebook-embed { height: 400px; }
   .steps { grid-template-columns: 1fr; margin-top: 60px; }
   .step, .step + .step { min-height: auto; padding: 25px 0 35px; border-right: 0; }
   .step h3 { margin-top: 38px; }

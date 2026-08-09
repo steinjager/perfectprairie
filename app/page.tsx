@@ -6,8 +6,10 @@ const services = [
     number: "01",
     title: "On-site consultations",
     kicker: "A clear plan for the land",
-    body: "Interested in conservation practices but unsure where to begin? We visit your property, read the site, and give you practical recommendations for a prairie plot, a ditch conversion, a new construction zone, or another space with potential.",
-    scope: "Prairies · Ditches · New construction",
+    body: "Interested in conservation practices but unsure where to begin? We visit your property, read the site, and give you practical recommendations for a prairie plot, a ditch conversion, or another space with potential.",
+    scope: "Prairies · Ditches · Conservation practices",
+    image: "/images/work/emma-field/wildflower-drive.webp",
+    alt: "A colorful wildflower planting beside a rural drive and open ground",
   },
   {
     number: "02",
@@ -15,13 +17,17 @@ const services = [
     kicker: "Designed for your place",
     body: "We create a custom landscape plan using exclusively native plants, tailored to your site and the way you want to live with it. We can remove existing vegetation, install the plants, and leave you with a clear watering and maintenance plan.",
     scope: "Plan · Prepare · Plant · Support",
+    image: "/images/work/curbside-monarch-waystation.jpg",
+    alt: "A native monarch waystation growing along a neighborhood sidewalk",
   },
   {
     number: "03",
     title: "Prairie + wildflower plots",
     kicker: "Where grass grows, prairie can grow better",
     body: "From annual wildflowers at a school, library, or city boulevard to a native perennial prairie at home, we prepare the ground and install a high-performance planting shaped around the space and your desired height.",
-    scope: "Yards · Schools · Libraries · Boulevards",
+    scope: "Yards · Schools · Libraries · Boulevards · Empty lots",
+    image: "/images/work/emma-field/cosmos-field.webp",
+    alt: "A broad field filled with pink, white, and burgundy cosmos flowers",
   },
 ];
 
@@ -35,15 +41,28 @@ const steps = [
 const facebookPosts = [
   {
     src: "https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Fpermalink.php%3Fstory_fbid%3Dpfbid0haCffLQwuyRRrxavxTRG148b59MWRXm3fisgwNumzpWMGu1s3mxCWwQShVPFD2xQl%26id%3D61576453635334&show_text=true&width=500",
+    href: "https://www.facebook.com/permalink.php?story_fbid=pfbid0haCffLQwuyRRrxavxTRG148b59MWRXm3fisgwNumzpWMGu1s3mxCWwQShVPFD2xQl&id=61576453635334",
     height: 756,
   },
   {
     src: "https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Fpermalink.php%3Fstory_fbid%3Dpfbid038Fj6ZSwViBePGszEXrwZkZCVuKxNLdy8FyMoxAFuZcriCckp8Wbrha5qWUFA5G2Bl%26id%3D61576453635334&show_text=true&width=500",
+    href: "https://www.facebook.com/permalink.php?story_fbid=pfbid038Fj6ZSwViBePGszEXrwZkZCVuKxNLdy8FyMoxAFuZcriCckp8Wbrha5qWUFA5G2Bl&id=61576453635334",
     height: 715,
   },
   {
     src: "https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Fpermalink.php%3Fstory_fbid%3Dpfbid02LtCZwCVBZ9UxXzCziJAoWQCCBijBzTTjjV5cycqBuCQtqG4hZ6Gq4SQw2iMJ8iwLl%26id%3D61576453635334&show_text=true&width=500",
+    href: "https://www.facebook.com/permalink.php?story_fbid=pfbid02LtCZwCVBZ9UxXzCziJAoWQCCBijBzTTjjV5cycqBuCQtqG4hZ6Gq4SQw2iMJ8iwLl&id=61576453635334",
     height: 632,
+  },
+  {
+    src: "https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Fpermalink.php%3Fstory_fbid%3Dpfbid02r2Z6z6GrrpwsJoFzneeCk1mGD3cmnSZ1SuJtKmfURZxrNQBDduXXvU7gafetm9GDl%26id%3D61589175748241&show_text=true&width=500",
+    href: "https://www.facebook.com/permalink.php?story_fbid=pfbid02r2Z6z6GrrpwsJoFzneeCk1mGD3cmnSZ1SuJtKmfURZxrNQBDduXXvU7gafetm9GDl&id=61589175748241",
+    height: 760,
+  },
+  {
+    src: "https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Fpermalink.php%3Fstory_fbid%3Dpfbid02cEorhxMGQn19HWtYUnefyRLDyZDaNzJU2MXnXpUwGYcrfnsKRPhvZfrRt9DnyEqel%26id%3D61576453635334&show_text=true&width=500",
+    href: "https://www.facebook.com/permalink.php?story_fbid=pfbid02cEorhxMGQn19HWtYUnefyRLDyZDaNzJU2MXnXpUwGYcrfnsKRPhvZfrRt9DnyEqel&id=61576453635334",
+    height: 760,
   },
 ];
 
@@ -56,7 +75,7 @@ export default function Home() {
           <span>Perfect Prairie</span>
         </a>
         <nav aria-label="Main navigation">
-          <a href="#field-notes">Prairie Portal</a>
+          <a href="#prairie-story">Gallery</a>
           <a href="#services">Services</a>
           <a href="#vision">Vision</a>
           <a href="#process">Process</a>
@@ -80,63 +99,8 @@ export default function Home() {
       </section>
 
       <div className="field-note" aria-label="Perfect Prairie approach">
-        <span>Consult the land</span><i>✺</i><span>Design with natives</span><i>✺</i><span>Prepare + install</span><i>✺</i><span>Rewild Illinois</span>
+        <span>Consultations</span><i>✺</i><span>Design with natives</span><i>✺</i><span>Prepare + install</span><i>✺</i><span>Rewild Illinois</span>
       </div>
-
-      <section className="facebook-portal section-pad" id="field-notes">
-        <div className="facebook-portal-heading">
-          <div>
-            <p className="eyebrow light"><span className="portal-pulse" aria-hidden="true" /> Growing now in Central Illinois</p>
-            <h2>The Prairie <em>Portal.</em></h2>
-          </div>
-          <div className="facebook-portal-intro">
-            <p className="lead">Fresh from the field—not a stock-photo version of “wild.”</p>
-            <p>See what we&apos;re planting, noticing, and learning as our own ground makes room for more life.</p>
-            <a className="text-link light" href="https://www.facebook.com/people/Perfect-Prairie/61576453635334/" target="_blank" rel="noreferrer">Enter the full feed <span aria-hidden="true">↗</span></a>
-          </div>
-        </div>
-
-        <div className="field-window" aria-label="Recent scenes from the Perfect Prairie field">
-          <figure className="field-window-wide">
-            <Image src="/images/work/emma-field/wildflower-field.webp" alt="A broad field of zinnias and black-eyed Susans beneath mature trees" fill sizes="(max-width: 900px) 100vw, 48vw" unoptimized />
-            <figcaption>More bloom. More movement. More life.</figcaption>
-          </figure>
-          <figure>
-            <Image src="/images/work/emma-field/bee-on-cornflower.webp" alt="A bee feeding on a deep purple cornflower" fill sizes="(max-width: 900px) 50vw, 22vw" unoptimized />
-            <figcaption>Habitat at work</figcaption>
-          </figure>
-          <figure>
-            <Image src="/images/work/emma-field/cosmos-and-coreopsis.webp" alt="Orange coreopsis and purple flowers glowing in evening light" fill sizes="(max-width: 900px) 50vw, 22vw" unoptimized />
-            <figcaption>Color with a purpose</figcaption>
-          </figure>
-        </div>
-
-        <div className="facebook-portal-track" aria-label="Recent Perfect Prairie Facebook posts">
-          {facebookPosts.map((post, index) => (
-            <article className="facebook-post" key={post.src}>
-              <div className="facebook-post-bar">
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <span>Perfect Prairie · Field note</span>
-                <i aria-hidden="true" />
-              </div>
-              <div className="facebook-embed">
-                <iframe
-                  src={post.src}
-                  width="500"
-                  height={post.height}
-                  title={`Perfect Prairie Facebook field note ${index + 1} of ${facebookPosts.length}`}
-                  loading="lazy"
-                  scrolling="no"
-                  frameBorder="0"
-                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                  allowFullScreen
-                />
-              </div>
-            </article>
-          ))}
-        </div>
-        <p className="facebook-portal-note">Posts load directly from Facebook. Swipe or scroll to explore the field notes.</p>
-      </section>
 
       <section className="intro section-pad">
         <p className="eyebrow">What we create</p>
@@ -152,6 +116,9 @@ export default function Home() {
       <section className="services" id="services" aria-label="Perfect Prairie services">
         {services.map((service) => (
           <article className="service-card" key={service.number}>
+            <div className="service-visual">
+              <Image src={service.image} alt={service.alt} fill sizes="(max-width: 900px) 100vw, 33vw" unoptimized />
+            </div>
             <div className="service-number">{service.number}</div>
             <p className="eyebrow">{service.kicker}</p>
             <h3>{service.title}</h3>
@@ -227,7 +194,7 @@ export default function Home() {
 
           <figure className="prairie-gallery-secondary prairie-gallery-detail">
             <div className="prairie-gallery-image">
-              <Image src="/images/work/emma-field/cornflower-drift.webp" alt="A drift of blue, purple, and pink cornflowers growing beneath mature trees" fill sizes="(max-width: 900px) 100vw, 30vw" unoptimized />
+              <Image src="/images/work/central-illinois-pollinator-garden.jpg" alt="Purple coneflowers and wild bergamot growing in a Central Illinois native planting" fill sizes="(max-width: 900px) 100vw, 30vw" unoptimized />
             </div>
             <figcaption><span>Color, structure, and seed across the seasons</span></figcaption>
           </figure>
@@ -264,9 +231,6 @@ export default function Home() {
       </section>
 
       <section className="about section-pad" id="about">
-        <div className="about-portrait">
-          <Image src="/images/work/founder-in-the-field.jpg" alt="The founder of Perfect Prairie exploring a natural landscape" fill sizes="(max-width: 900px) 100vw, 34vw" unoptimized />
-        </div>
         <div className="about-copy">
           <p className="eyebrow">Rooted close to home</p>
           <h2>This work starts in our own yard.</h2>
@@ -289,6 +253,61 @@ export default function Home() {
         <InquiryForm />
       </section>
 
+      <section className="facebook-follow section-pad" id="field-notes">
+        <div className="facebook-follow-heading">
+          <div>
+            <p className="eyebrow light"><span className="facebook-pulse" aria-hidden="true" /> From the field · On Facebook</p>
+            <h2>Follow the prairie<br /><em>as it grows.</em></h2>
+          </div>
+          <div className="facebook-follow-intro">
+            <p className="lead">New blooms. Honest progress. Bigger ideas for ordinary ground.</p>
+            <p>Follow along for seasonal field notes, prairie establishment lessons, pollinator sightings, and new ways to see Central Illinois.</p>
+            <a className="button button-sun" href="https://www.facebook.com/people/Perfect-Prairie/61576453635334/" target="_blank" rel="noreferrer">Follow Perfect Prairie <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+
+        <div className="field-window" aria-label="Recent scenes from the Perfect Prairie field">
+          <figure className="field-window-wide">
+            <Image src="/images/work/emma-field/wildflower-field.webp" alt="A broad field of zinnias and black-eyed Susans beneath mature trees" fill sizes="(max-width: 900px) 100vw, 48vw" unoptimized />
+            <figcaption>More bloom. More movement. More life.</figcaption>
+          </figure>
+          <figure>
+            <Image src="/images/work/emma-field/bee-on-cornflower.webp" alt="A bee feeding on a deep purple cornflower" fill sizes="(max-width: 900px) 50vw, 22vw" unoptimized />
+            <figcaption>Habitat at work</figcaption>
+          </figure>
+          <figure>
+            <Image src="/images/work/emma-field/cosmos-and-coreopsis.webp" alt="Orange coreopsis and purple flowers glowing in evening light" fill sizes="(max-width: 900px) 50vw, 22vw" unoptimized />
+            <figcaption>Color with a purpose</figcaption>
+          </figure>
+        </div>
+
+        <div className="facebook-follow-track" aria-label="Recent Perfect Prairie Facebook posts">
+          {facebookPosts.map((post, index) => (
+            <article className="facebook-post" key={post.src}>
+              <div className="facebook-post-bar">
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <span>From Facebook</span>
+                <a href={post.href} target="_blank" rel="noreferrer">Open ↗</a>
+              </div>
+              <div className="facebook-embed">
+                <iframe
+                  src={post.src}
+                  width="500"
+                  height={post.height}
+                  title={`Perfect Prairie Facebook field note ${index + 1} of ${facebookPosts.length}`}
+                  loading="lazy"
+                  scrolling="no"
+                  frameBorder="0"
+                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+            </article>
+          ))}
+        </div>
+        <p className="facebook-follow-note">Five recent posts · Swipe or scroll, then follow us on Facebook for what grows next.</p>
+      </section>
+
       <footer>
         <div className="footer-brand">
           <span className="footer-brand-mark" aria-hidden="true">✺</span>
@@ -296,7 +315,7 @@ export default function Home() {
           <p>Consultation, native landscape design and installation, and prairie or wildflower plots for Central Illinois.</p>
         </div>
         <div className="footer-links">
-          <div><span>Explore</span><a href="#services">Services</a><a href="#vision">Vision</a><a href="#process">Process</a><a href="#field-notes">Field notes</a></div>
+          <div><span>Explore</span><a href="#services">Services</a><a href="#vision">Vision</a><a href="#process">Process</a><a href="#field-notes">Facebook</a></div>
           <div><span>Connect</span><a href="mailto:contact@perfectprairie.com">Email</a><a href="tel:+13096132016">Call or text</a><a href="https://www.facebook.com/people/Perfect-Prairie/61576453635334/" target="_blank" rel="noreferrer">Facebook</a></div>
         </div>
         <div className="footer-bottom"><span>© {new Date().getFullYear()} Perfect Prairie</span><span>Less lawn. More habitat.</span></div>
