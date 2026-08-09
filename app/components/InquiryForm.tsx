@@ -65,7 +65,7 @@ export function InquiryForm() {
         <button className="button button-sun" type="submit" disabled={state === "sending"}>{state === "sending" ? "Sending…" : "Request an estimate ↗"}</button>
         <p>By submitting, you&apos;re asking Perfect Prairie to contact you about this project.</p>
       </div>
-      {state === "error" && <p className="form-error" role="alert">The form is not connected yet. Email <a href="mailto:contact@perfectprairie.com">contact@perfectprairie.com</a> for now.</p>}
+      {state === "error" && <p className="form-error" role="alert">We couldn&apos;t send your request just now. Please try again, or email <a href="mailto:contact@perfectprairie.com">contact@perfectprairie.com</a>.</p>}
     </form>
   );
 }

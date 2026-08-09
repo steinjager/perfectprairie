@@ -183,7 +183,9 @@ h2 { margin-bottom: 0; font-size: clamp(3rem, 6.1vw, 6.4rem); }
 .inquiry-form small { display: inline; color: rgba(255,255,255,.4); font-size: inherit; }
 .inquiry-form input, .inquiry-form select, .inquiry-form textarea { width: 100%; padding: 13px 0; color: white; background: transparent; border: 0; border-bottom: 1px solid rgba(255,255,255,.32); border-radius: 0; outline: 0; font-size: 1rem; font-weight: 400; letter-spacing: 0; text-transform: none; transition: border-color .2s ease; }
 .inquiry-form textarea { resize: vertical; }
-.inquiry-form select { appearance: none; color-scheme: dark; }
+.inquiry-form select { appearance: none; color-scheme: dark; cursor: pointer; }
+.inquiry-form select option { color: var(--ink); background: var(--paper); }
+.inquiry-form select option:disabled { color: #7b817c; }
 .inquiry-form input:focus, .inquiry-form select:focus, .inquiry-form textarea:focus { border-color: var(--sun); }
 .inquiry-form ::placeholder { color: rgba(255,255,255,.38); }
 .form-submit { display: flex; align-items: center; gap: 25px; margin-top: 40px; }
