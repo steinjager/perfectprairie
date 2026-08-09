@@ -159,9 +159,9 @@ export default function Home() {
         <div className="rewild-gallery">
           <figure className="rewild-gallery-main">
             <div className="rewild-image">
-              <Image src="/images/work/curbside-monarch-waystation.jpg" alt="A curbside monarch waystation filled with native flowers beside a city sidewalk" fill sizes="(max-width: 900px) 100vw, 60vw" unoptimized />
+              <Image src="/images/work/school-wildflower-garden.jpg" alt="A bright wildflower garden growing immediately outside a school building" fill sizes="(max-width: 900px) 100vw, 60vw" unoptimized />
             </div>
-            <figcaption><strong>Imagine the curb alive.</strong><span>Flowers, food, shelter, and a street people remember.</span></figcaption>
+            <figcaption><strong>A schoolyard blooming with joy.</strong><span>This wildflower planting grows right outside a school—bringing color, habitat, and everyday happiness to the kids who pass it.</span></figcaption>
           </figure>
           <figure className="rewild-gallery-side">
             <div className="rewild-image">

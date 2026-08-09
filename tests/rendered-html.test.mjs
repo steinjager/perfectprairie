@@ -43,6 +43,10 @@ test("server-renders the Perfect Prairie template", async () => {
   assert.match(html, /curbside-monarch-waystation\.jpg/);
   assert.match(html, /cosmos-field\.webp/);
   assert.match(html, /central-illinois-pollinator-garden\.jpg/);
+  assert.match(html, /school-wildflower-garden\.jpg/);
+  assert.match(html, /A schoolyard blooming with joy/);
+  assert.match(html, /everyday happiness to the kids/);
+  assert.doesNotMatch(html, /Imagine the curb alive/);
   assert.doesNotMatch(html, /founder-in-the-field\.jpg/);
   assert.match(html, /wildflower-field\.webp/);
   assert.match(html, /bee-on-cornflower\.webp/);
