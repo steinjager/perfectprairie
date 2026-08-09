@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 
 const fields = ["firstName", "lastName", "email", "phone", "location", "size", "service", "message"] as const;
+const contactRecipients = ["emmahowerter@gmail.com", "contact@perfectprairie.com"] as const;
 
 export async function POST(request: NextRequest) {
   const contentLength = Number(request.headers.get("content-length") ?? 0);
@@ -34,6 +35,8 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         source: "Perfect Prairie website",
         submittedAt: new Date().toISOString(),
+        to: contactRecipients.join(", "),
+        recipients: [...contactRecipients],
         replyTo: inquiry.email,
         subject: `New Perfect Prairie project request — ${inquiry.firstName} ${inquiry.lastName}`,
         inquiry,

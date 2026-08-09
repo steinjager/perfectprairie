@@ -35,4 +35,4 @@ npm run lint
 npm run deploy
 ```
 
-The Cloudflare routes are configured for `perfectprairie.com` and `www.perfectprairie.com`. Contact-form delivery uses the `CONTACT_WEBHOOK_URL` Worker secret.
+The Cloudflare routes are configured for `perfectprairie.com` and `www.perfectprairie.com`. Contact-form delivery uses the `CONTACT_WEBHOOK_URL` Worker secret. The webhook payload includes both a Gmail-ready `to` string and a `recipients` array addressed to `emmahowerter@gmail.com` and `contact@perfectprairie.com`.
