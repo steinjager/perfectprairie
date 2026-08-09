@@ -4,6 +4,7 @@ import handler from "vinext/server/app-router-entry";
 
 interface Env {
   ASSETS: Fetcher;
+  CONTACT_WEBHOOK_URL?: string;
   DB: D1Database;
   IMAGES: {
     input(stream: ReadableStream): {
@@ -28,6 +29,12 @@ interface ExecutionContext {
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+
+    // Vinext route handlers read server-only configuration from process.env,
+    // while Cloudflare exposes secrets on the Worker env binding.
+    if (env.CONTACT_WEBHOOK_URL) {
+      process.env.CONTACT_WEBHOOK_URL = env.CONTACT_WEBHOOK_URL;
+    }
 
     if (url.pathname === "/_vinext/image") {
       const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];
