@@ -56,6 +56,7 @@ export default function Home() {
           <span>Perfect Prairie</span>
         </a>
         <nav aria-label="Main navigation">
+          <a href="#field-notes">Prairie Portal</a>
           <a href="#services">Services</a>
           <a href="#vision">Vision</a>
           <a href="#process">Process</a>
@@ -64,7 +65,7 @@ export default function Home() {
       </header>
 
       <section className="hero" id="top">
-        <div className="hero-image" role="img" aria-label="A dense planting of golden black-eyed Susan wildflowers" />
+        <div className="hero-image" role="img" aria-label="A wide field of pink, orange, and yellow flowers growing beneath Illinois trees" />
         <div className="hero-shade" />
         <div className="hero-content">
           <p className="eyebrow light">Native landscapes · Central Illinois</p>
@@ -81,6 +82,61 @@ export default function Home() {
       <div className="field-note" aria-label="Perfect Prairie approach">
         <span>Consult the land</span><i>✺</i><span>Design with natives</span><i>✺</i><span>Prepare + install</span><i>✺</i><span>Rewild Illinois</span>
       </div>
+
+      <section className="facebook-portal section-pad" id="field-notes">
+        <div className="facebook-portal-heading">
+          <div>
+            <p className="eyebrow light"><span className="portal-pulse" aria-hidden="true" /> Growing now in Central Illinois</p>
+            <h2>The Prairie <em>Portal.</em></h2>
+          </div>
+          <div className="facebook-portal-intro">
+            <p className="lead">Fresh from the field—not a stock-photo version of “wild.”</p>
+            <p>See what we&apos;re planting, noticing, and learning as our own ground makes room for more life.</p>
+            <a className="text-link light" href="https://www.facebook.com/people/Perfect-Prairie/61576453635334/" target="_blank" rel="noreferrer">Enter the full feed <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+
+        <div className="field-window" aria-label="Recent scenes from the Perfect Prairie field">
+          <figure className="field-window-wide">
+            <Image src="/images/work/emma-field/wildflower-field.webp" alt="A broad field of zinnias and black-eyed Susans beneath mature trees" fill sizes="(max-width: 900px) 100vw, 48vw" unoptimized />
+            <figcaption>More bloom. More movement. More life.</figcaption>
+          </figure>
+          <figure>
+            <Image src="/images/work/emma-field/bee-on-cornflower.webp" alt="A bee feeding on a deep purple cornflower" fill sizes="(max-width: 900px) 50vw, 22vw" unoptimized />
+            <figcaption>Habitat at work</figcaption>
+          </figure>
+          <figure>
+            <Image src="/images/work/emma-field/cosmos-and-coreopsis.webp" alt="Orange coreopsis and purple flowers glowing in evening light" fill sizes="(max-width: 900px) 50vw, 22vw" unoptimized />
+            <figcaption>Color with a purpose</figcaption>
+          </figure>
+        </div>
+
+        <div className="facebook-portal-track" aria-label="Recent Perfect Prairie Facebook posts">
+          {facebookPosts.map((post, index) => (
+            <article className="facebook-post" key={post.src}>
+              <div className="facebook-post-bar">
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <span>Perfect Prairie · Field note</span>
+                <i aria-hidden="true" />
+              </div>
+              <div className="facebook-embed">
+                <iframe
+                  src={post.src}
+                  width="500"
+                  height={post.height}
+                  title={`Perfect Prairie Facebook field note ${index + 1} of ${facebookPosts.length}`}
+                  loading="lazy"
+                  scrolling="no"
+                  frameBorder="0"
+                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+            </article>
+          ))}
+        </div>
+        <p className="facebook-portal-note">Posts load directly from Facebook. Swipe or scroll to explore the field notes.</p>
+      </section>
 
       <section className="intro section-pad">
         <p className="eyebrow">What we create</p>
@@ -107,8 +163,8 @@ export default function Home() {
 
       <section className="feature section-pad">
         <div className="feature-photo">
-          <Image src="/images/work/central-illinois-pollinator-garden.jpg" alt="A lush pollinator garden glowing with coneflowers, bee balm, and black-eyed Susans" fill sizes="(max-width: 900px) 100vw, 46vw" unoptimized />
-          <div className="photo-tag">A living landscape</div>
+          <Image src="/images/work/emma-field/black-eyed-susans.webp" alt="A dense stand of golden black-eyed Susans growing beneath trees" fill sizes="(max-width: 900px) 100vw, 46vw" unoptimized />
+          <div className="photo-tag">From our field</div>
         </div>
         <div className="feature-copy">
           <p className="eyebrow">Why prairie</p>
@@ -171,7 +227,7 @@ export default function Home() {
 
           <figure className="prairie-gallery-secondary prairie-gallery-detail">
             <div className="prairie-gallery-image">
-              <Image src="/images/work/native-wildflower-detail.jpg" alt="Purple and yellow wildflowers growing densely together" fill sizes="(max-width: 900px) 100vw, 30vw" unoptimized />
+              <Image src="/images/work/emma-field/cornflower-drift.webp" alt="A drift of blue, purple, and pink cornflowers growing beneath mature trees" fill sizes="(max-width: 900px) 100vw, 30vw" unoptimized />
             </div>
             <figcaption><span>Color, structure, and seed across the seasons</span></figcaption>
           </figure>
@@ -218,46 +274,6 @@ export default function Home() {
           <p>We are actively turning our own three-acre yard into native perennial prairie—and helping Central Illinois landowners, schools, libraries, and communities imagine what their ground could become.</p>
           <a className="text-link" href="https://www.facebook.com/people/Perfect-Prairie/61576453635334/" target="_blank" rel="noreferrer">Follow the work on Facebook <span aria-hidden="true">↗</span></a>
         </div>
-      </section>
-
-      <section className="facebook-portal section-pad" id="field-notes">
-        <div className="facebook-portal-heading">
-          <div>
-            <p className="eyebrow light"><span className="portal-pulse" aria-hidden="true" /> Live from the field</p>
-            <h2>The Prairie<br /><em>Portal.</em></h2>
-          </div>
-          <div className="facebook-portal-intro">
-            <p className="lead">What we&apos;re planting, noticing, and imagining for Central Illinois.</p>
-            <p>Follow the work as it grows—from our own three-acre prairie to the ordinary strips of land that could become habitat next.</p>
-            <a className="text-link light" href="https://www.facebook.com/people/Perfect-Prairie/61576453635334/" target="_blank" rel="noreferrer">Enter the full feed <span aria-hidden="true">↗</span></a>
-          </div>
-        </div>
-
-        <div className="facebook-portal-track" aria-label="Recent Perfect Prairie Facebook posts">
-          {facebookPosts.map((post, index) => (
-            <article className="facebook-post" key={post.src}>
-              <div className="facebook-post-bar">
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <span>Perfect Prairie · Field note</span>
-                <i aria-hidden="true" />
-              </div>
-              <div className="facebook-embed">
-                <iframe
-                  src={post.src}
-                  width="500"
-                  height={post.height}
-                  title={`Perfect Prairie Facebook field note ${index + 1} of ${facebookPosts.length}`}
-                  loading="lazy"
-                  scrolling="no"
-                  frameBorder="0"
-                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                  allowFullScreen
-                />
-              </div>
-            </article>
-          ))}
-        </div>
-        <p className="facebook-portal-note">Posts load directly from Facebook. Swipe or scroll to explore the field notes.</p>
       </section>
 
       <section className="estimate" id="estimate">

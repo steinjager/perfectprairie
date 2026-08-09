@@ -28,6 +28,9 @@ test("server-renders the Perfect Prairie template", async () => {
   assert.match(html, /Wild by nature/);
   assert.match(html, /The Prairie/);
   assert.match(html, /Portal/);
+  assert.ok(html.indexOf('id="field-notes"') < html.indexOf('id="services"'), "Prairie Portal should appear before services");
+  assert.match(html, /wildflower-field\.webp/);
+  assert.match(html, /bee-on-cornflower\.webp/);
   assert.equal((html.match(/<iframe\b/g) ?? []).length, 3);
   assert.match(html, /pfbid0haCffLQwuyRRrxavxTRG148b59/);
   assert.match(html, /pfbid038Fj6ZSwViBePGszEXrwZkZCVu/);
