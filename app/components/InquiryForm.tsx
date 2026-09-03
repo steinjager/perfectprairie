@@ -4,6 +4,18 @@ import { FormEvent, useState } from "react";
 
 type FormState = "idle" | "sending" | "success" | "error";
 
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
+const googleAdsConversion = "AW-18419103731/u3dPCOaG4uocEPPv9M5E";
+
+function trackSuccessfulInquiry() {
+  window.gtag?.("event", "conversion", { send_to: googleAdsConversion });
+}
+
 export function InquiryForm() {
   const [state, setState] = useState<FormState>("idle");
 
@@ -21,6 +33,7 @@ export function InquiryForm() {
       });
 
       if (!response.ok) throw new Error("Submission failed");
+      trackSuccessfulInquiry();
       form.reset();
       setState("success");
     } catch {

@@ -66,6 +66,7 @@ test("server-renders the Perfect Prairie template", async () => {
   assert.match(html, /loading="lazy"/);
   assert.doesNotMatch(html, /Emma|Galena|Perfect Prairies/);
   assert.match(html, /Request an estimate/);
+  assert.match(html, /AW-18419103731/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape/);
 });
 

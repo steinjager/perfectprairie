@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
+
+const googleAdsId = "AW-18419103731";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.perfectprairie.com"),
@@ -21,5 +24,24 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: "#183a2a", colorScheme: "light" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body>{children}</body></html>;
+  return (
+    <html lang="en">
+      <body>
+        {children}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${googleAdsId}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-ads-tag" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            window.gtag = gtag;
+            gtag('js', new Date());
+            gtag('config', '${googleAdsId}');
+          `}
+        </Script>
+      </body>
+    </html>
+  );
 }
