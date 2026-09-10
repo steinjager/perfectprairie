@@ -34,6 +34,7 @@ export default function MapWorkspace({ initial, onSave, onClose }: { initial: Pr
       leaflet.control.scale({imperial:true,metric:false}).addTo(map);
       map.on("dragstart zoomstart",()=>{touched.current=true;});
       map.on("click",e=>{
+        touched.current=true; // A delayed location fix must not interrupt plotting.
         const current=state.current, position: Position=[e.latlng.lat,e.latlng.lng];
         if(current.tool==="area") { setDraft(d=>[...d,position]); return; }
         if(current.tool==="text" || current.tool==="symbol") {

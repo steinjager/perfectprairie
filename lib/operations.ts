@@ -38,8 +38,9 @@ export function id(value: unknown) {
   return result;
 }
 export function calculateItems(value: unknown, percent: unknown) {
+  const numeric=(v:unknown)=>typeof v==="number"||(typeof v==="string"&&v.trim()!=="");
   const markup = Number(percent);
-  if (!Number.isFinite(markup) || markup < 0 || markup > 500 || Math.abs(markup * 100 - Math.round(markup * 100)) > 1e-7) throw new InputError("Markup must be between 0% and 500%, with up to two decimals.");
+  if (!numeric(percent) || !Number.isFinite(markup) || markup < 0 || markup > 500 || Math.abs(markup * 100 - Math.round(markup * 100)) > 1e-7) throw new InputError("Markup must be between 0% and 500%, with up to two decimals.");
   const markupBps = Math.round(markup * 100);
   if (!Array.isArray(value) || !value.length || value.length > 50) throw new InputError("Add between 1 and 50 complete line items.");
   const items = value.map((row: Record<string, unknown>) => {
@@ -47,6 +48,7 @@ export function calculateItems(value: unknown, percent: unknown) {
     const description = text(row.description, "Item description", 500, true);
     const quantity = Number(row.quantity);
     const cost = Number(row.unitCost);
+    if(!numeric(row.quantity)||!numeric(row.unitCost))throw new InputError("Enter a numeric quantity and unit cost for each item.");
     if (!Number.isFinite(quantity) || quantity < .001 || quantity > 1_000_000 || Math.abs(quantity * 1000 - Math.round(quantity * 1000)) > 1e-6) throw new InputError("Quantity must be positive with up to three decimals.");
     if (row.unitCost === "" || row.unitCost === null || !Number.isFinite(cost) || cost < 0 || cost > 1_000_000 || Math.abs(cost * 100 - Math.round(cost * 100)) > 1e-6) throw new InputError("Unit cost must be between $0 and $1,000,000 with up to two decimals.");
     const quantityMilli = Math.round(quantity * 1000);
@@ -97,7 +99,7 @@ export function validateMap(value: unknown): ProjectMap | null {
     if (used.has(featureId)) throw new InputError("Duplicate map feature.");
     used.add(featureId);
     if (!/^#[0-9a-f]{6}$/i.test(f.color)) throw new InputError("Choose a valid color.");
-    if (f.kind === "symbol" && !symbols[f.symbol ?? ""]) throw new InputError("Choose a valid symbol.");
+    if (f.kind === "symbol" && !Object.hasOwn(symbols,f.symbol ?? "")) throw new InputError("Choose a valid symbol.");
     const points = f.points.map(position);
     if (f.kind === "area" && areaSqMeters(points) < .01) throw new InputError("Draw an area with at least three different corners.");
     if (f.kind === "area" && (new Set(points.map(p=>p.join(","))).size!==points.length || hasCrossingEdges(points))) throw new InputError("Area edges must not cross or repeat corners. Adjust the shape before saving.");

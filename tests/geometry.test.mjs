@@ -10,9 +10,12 @@ test("pricing rounds customer unit rate then line total consistently",()=>{
   const result=calculateItems([{description:"Plants",quantity:1.5,unitCost:10.01}],20);
   assert.equal(result.items[0].unitPriceCents,1201);assert.equal(result.totalCents,1802);
   assert.throws(()=>calculateItems([{description:"Plants",quantity:.0001,unitCost:10}],30));
+  assert.throws(()=>calculateItems([{description:"Plants",quantity:1,unitCost:10}],null));
+  assert.throws(()=>calculateItems([{description:"Plants",quantity:1,unitCost:true}],30));
 });
 test("invalid map payloads cannot store bad coordinates or duplicate features",()=>{
   assert.throws(()=>validateMap({center:[Infinity,0],zoom:18,features:[]}));
   assert.throws(()=>validateMap({center:[0,0],zoom:18,features:[{id:crypto.randomUUID(),kind:"area",title:"Area",color:"#abcdef",points:[[0,0],[0,0],[0,0]]}]}));
   assert.throws(()=>validateMap({center:[0,0],zoom:18,features:[{id:crypto.randomUUID(),kind:"area",title:"Crossed edges",color:"#abcdef",points:[[0,0],[.003,.002],[0,.002],[.002,0]]}]}),/edges must not cross/);
+  assert.throws(()=>validateMap({center:[0,0],zoom:18,features:[{id:crypto.randomUUID(),kind:"symbol",symbol:"__proto__",title:"Bad symbol",color:"#abcdef",points:[[0,0]]}]}),/valid symbol/);
 });

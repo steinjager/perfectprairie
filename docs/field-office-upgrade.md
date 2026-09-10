@@ -37,3 +37,10 @@ Validated September 10, 2026:
 - Server integration tests cover legacy price preservation, item replacement, money rounding, status edits, stale-save conflicts (including a race at the batch boundary), invalid payloads, map persistence, customer-link revocation, and private-field/analytics exclusions.
 - Device location was verified with an emulated browser location and a denied-permission fallback. Actual device permission/accuracy and internet connectivity remain device-dependent; imagery is historical and external. No offline mode, cadastral survey guarantees, automatic invoice emailing, or payment processing are implied.
 - Backed up production D1 before the additive migration. Existing record counts: one client, one project, no estimates, one invoice. Publishing and post-deploy checks follow below.
+
+Production release:
+
+- Source upgrade published to main; the additive migration applied successfully to the existing operations database. No records were deleted or replaced.
+- Deployed through the existing Worker and all three configured domains, without changing DNS or Access permissions. Public homepage returned 200; the review route retained the direct Google review destination; invalid customer links returned 404 with no-store/noindex/no-referrer headers.
+- Renewed the existing owner Google session through Cloudflare Access and confirmed the upgraded production interface loads the original records. The legacy invoice retains its original price with 0% added markup. No customer links were enabled and no production records were modified during acceptance.
+- Added a final guard against late device-location callbacks moving the view after plotting starts; malformed numeric values and non-allowlisted icon identifiers are rejected. Re-ran build, 13 tests, lint and typecheck before publishing this safeguard.
