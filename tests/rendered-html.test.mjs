@@ -26,7 +26,7 @@ test("server-renders the Perfect Prairie template", async () => {
 
   const html = await response.text();
   assert.match(html, /Perfect Prairie/);
-  assert.match(html, /images\/perfect-prairie-logo\.png/);
+  assert.match(html, /images\/perfect-prairie-logo-carolina-mantis\.png/);
   assert.match(html, /Less lawn/);
   assert.match(html, /On-site consultations/);
   assert.match(html, /Native landscape design \+ installation/);
@@ -115,4 +115,53 @@ test("inquiries address both Perfect Prairie inboxes", async () => {
     if (originalWebhookUrl === undefined) delete process.env.CONTACT_WEBHOOK_URL;
     else process.env.CONTACT_WEBHOOK_URL = originalWebhookUrl;
   }
+});
+
+test("admin routes are hidden on the public host", async () => {
+  const worker = await loadWorker();
+  const response = await worker.fetch(
+    new Request("https://www.perfectprairie.com/admin"),
+    { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } },
+    { waitUntil() {}, passThroughOnException() {} },
+  );
+
+  assert.equal(response.status, 404);
+  assert.equal(await response.text(), "Not found");
+});
+
+test("the stable review route redirects to the configured Google review URL", async () => {
+  const originalReviewUrl = process.env.GOOGLE_REVIEW_URL;
+  process.env.GOOGLE_REVIEW_URL = "https://g.page/r/perfect-prairie/review";
+  const worker = await loadWorker();
+
+  try {
+    const response = await worker.fetch(
+      new Request("https://www.perfectprairie.com/review"),
+      { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } },
+      { waitUntil() {}, passThroughOnException() {} },
+    );
+
+    assert.equal(response.status, 302);
+    assert.equal(response.headers.get("location"), "https://g.page/r/perfect-prairie/review");
+  } finally {
+    if (originalReviewUrl === undefined) delete process.env.GOOGLE_REVIEW_URL;
+    else process.env.GOOGLE_REVIEW_URL = originalReviewUrl;
+  }
+});
+
+test("admin hostname requires a Cloudflare Access session", async () => {
+  const worker = await loadWorker();
+  const response = await worker.fetch(
+    new Request("https://admin.perfectprairie.com/"),
+    {
+      ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) },
+      ADMIN_EMAILS: "emmahowerter@gmail.com,mkr@steinjager.com",
+      ACCESS_TEAM_DOMAIN: "https://example.cloudflareaccess.com",
+      ACCESS_POLICY_AUD: "test-audience",
+    },
+    { waitUntil() {}, passThroughOnException() {} },
+  );
+
+  assert.equal(response.status, 403);
+  assert.match(await response.text(), /valid Cloudflare Access session/i);
 });

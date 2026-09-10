@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Script from "next/script";
 import { InquiryForm } from "./components/InquiryForm";
 
 const services = [
@@ -69,9 +70,11 @@ const facebookPosts = [
 export default function Home() {
   return (
     <main>
+      <Script src="https://www.googletagmanager.com/gtag/js?id=AW-18419103731" strategy="afterInteractive" />
+      <Script id="google-ads-tag" strategy="afterInteractive">{`window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} window.gtag = gtag; gtag('js', new Date()); gtag('config', 'AW-18419103731');`}</Script>
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Perfect Prairie home">
-          <Image className="brand-logo" src="/images/perfect-prairie-logo.png" alt="" width={54} height={52} priority unoptimized />
+          <Image className="brand-logo" src="/images/perfect-prairie-logo-carolina-mantis.png" alt="" width={54} height={52} priority unoptimized />
           <span>Perfect Prairie</span>
         </a>
         <nav aria-label="Main navigation">

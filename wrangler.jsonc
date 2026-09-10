@@ -14,6 +14,24 @@
     {
       "pattern": "www.perfectprairie.com/*",
       "zone_name": "perfectprairie.com"
+    },
+    {
+      "pattern": "admin.perfectprairie.com/*",
+      "zone_name": "perfectprairie.com"
+    }
+  ],
+  "vars": {
+    "ADMIN_EMAILS": "emmahowerter@gmail.com,mkr@steinjager.com",
+    "ACCESS_TEAM_DOMAIN": "https://shy-bush-35cb.cloudflareaccess.com",
+    "ACCESS_POLICY_AUD": "8c67163b6ac85c8eb9e92f95c9c3e7e57e6a20a8de76e0934a72f894df974a3e",
+    "GOOGLE_REVIEW_URL": "https://g.page/r/Cew3cfkKTNodEBM/review"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "perfect-prairie-operations",
+      "database_id": "605b6e06-03fa-4c98-9f86-c50a888d40fb",
+      "migrations_dir": "drizzle"
     }
   ],
   "assets": {

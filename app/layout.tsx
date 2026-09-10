@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import "./globals.css";
-
-const googleAdsId = "AW-18419103731";
+import "leaflet/dist/leaflet.css";
+import "./office.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.perfectprairie.com"),
@@ -28,19 +27,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en">
       <body>
         {children}
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${googleAdsId}`}
-          strategy="afterInteractive"
-        />
-        <Script id="google-ads-tag" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            window.gtag = gtag;
-            gtag('js', new Date());
-            gtag('config', '${googleAdsId}');
-          `}
-        </Script>
       </body>
     </html>
   );

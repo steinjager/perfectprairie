@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { runtimeSetting } from "@/db";
 
 const fields = ["firstName", "lastName", "email", "phone", "location", "size", "service", "message"] as const;
 const contactRecipients = ["emmahowerter@gmail.com", "contact@perfectprairie.com"] as const;
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "Please complete the required fields" }, { status: 400 });
   }
 
-  const webhookUrl = process.env.CONTACT_WEBHOOK_URL;
+  const webhookUrl = runtimeSetting("CONTACT_WEBHOOK_URL");
   if (!webhookUrl) {
     return Response.json({ error: "Contact delivery is not configured" }, { status: 503 });
   }
