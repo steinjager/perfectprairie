@@ -101,6 +101,22 @@ export const invoiceItems = sqliteTable("invoice_items", {
   position: integer("position").notNull().default(0),
 }, (table) => [index("idx_invoice_items_invoice_id").on(table.invoiceId)]);
 
+export const projectItems = sqliteTable("project_items", {
+  id: text("id").primaryKey(),
+  projectId: text("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  category: text("category").notNull().default("seed-mix"),
+  quantityMilli: integer("quantity_milli").notNull().default(1000),
+  unit: text("unit").notNull().default(""),
+  unitCostCents: integer("unit_cost_cents").notNull().default(0),
+  billable: integer("billable", { mode: "boolean" }).notNull().default(true),
+  notes: text("notes").notNull().default(""),
+  sourceUrl: text("source_url").notNull().default(""),
+  imageKey: text("image_key"),
+  archived: integer("archived", { mode: "boolean" }).notNull().default(false),
+  ...timestamps,
+}, table => [index("idx_project_items_project_id").on(table.projectId)]);
+
 export const documentCounters = sqliteTable("document_counters", {
   kind: text("kind").notNull(),
   year: integer("year").notNull(),

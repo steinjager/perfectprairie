@@ -11,10 +11,12 @@
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
     "deploy": "vinext deploy --name perfect-prairie",
     "test": "npm run build && node --test tests/*.test.mjs",
+    "test:browser": "node tests/browser-mechanics.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern worker-configuration.d.ts",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
+    "@geoman-io/leaflet-geoman-free": "^2.20.0",
     "drizzle-orm": "0.45.2",
     "jose": "^6.2.12",
     "leaflet": "^1.9.4",
@@ -25,6 +27,7 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "4.2.1",
     "@types/leaflet": "^1.9.22",
     "@types/node": "22.19.19",

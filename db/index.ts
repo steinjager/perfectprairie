@@ -2,8 +2,14 @@ import { drizzle } from "drizzle-orm/d1";
 import * as schema from "./schema";
 import { AsyncLocalStorage } from "node:async_hooks";
 
-const bindings = new AsyncLocalStorage<{ DB?: D1Database; CONTACT_WEBHOOK_URL?: string; GOOGLE_REVIEW_URL?: string }>();
-export function withBindings<T>(env: { DB?: D1Database; CONTACT_WEBHOOK_URL?: string; GOOGLE_REVIEW_URL?: string }, callback: () => T) { return bindings.run(env, callback); }
+type Bindings = Partial<Pick<Cloudflare.Env, "DB" | "PROJECT_FILES" | "GOOGLE_REVIEW_URL">> & { CONTACT_WEBHOOK_URL?: string };
+const bindings = new AsyncLocalStorage<Bindings>();
+export function withBindings<T>(env: Bindings, callback: () => T) { return bindings.run(env, callback); }
+export function getProjectFiles() {
+  const bucket = bindings.getStore()?.PROJECT_FILES;
+  if (!bucket) throw new Error("Project photo storage is unavailable.");
+  return bucket;
+}
 export function runtimeSetting(name: "CONTACT_WEBHOOK_URL" | "GOOGLE_REVIEW_URL") { return bindings.getStore()?.[name] ?? process.env[name]; }
 
 export function getDb() {

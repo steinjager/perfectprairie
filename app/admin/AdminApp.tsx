@@ -9,12 +9,14 @@ import MapWorkspace from "./MapWorkspace";
 import ProjectsMap from "./ProjectsMap";
 import MapPreview from "@/app/components/MapPreview";
 import CustomerDocument from "@/app/components/CustomerDocument";
+import ProjectNotebook from "./ProjectNotebook";
 
 type View = "overview" | "clients" | "projects" | "mapped" | "estimates" | "invoices";
-const emptyData:AdminData={clients:[],projects:[],estimates:[],invoices:[]};
+const emptyData:AdminData={clients:[],projects:[],estimates:[],invoices:[],projectItems:[]};
 export default function AdminApp({userEmail}:{userEmail:string}){
   const [data,setData]=useState<AdminData>(emptyData),[view,setView]=useState<View>("overview");
   const [editor,setEditor]=useState<Editor|null>(null),[mapProject,setMapProject]=useState<Project|null>(null);
+  const [openProjectId,setOpenProjectId]=useState<string|null>(null);
   const [preview,setPreview]=useState<{record:DocumentRecord;kind:DocumentKind}|null>(null);
   const [loading,setLoading]=useState(true),[error,setError]=useState(""),[notice,setNotice]=useState("");
   const [search,setSearch]=useState(""),[filter,setFilter]=useState(""),[busy,setBusy]=useState("");
@@ -30,8 +32,8 @@ export default function AdminApp({userEmail}:{userEmail:string}){
   const projectName=(id:string)=>projects.get(id)?.name||"Project";
   const mapped=useMemo(()=>data.projects.filter(p=>parseMap(p)),[data.projects]);
   const match=(value:string)=>value.toLowerCase().includes(search.toLowerCase());
-  const setSection=(next:View)=>{setView(next);setSearch("");setFilter("");};
-  async function saved(){await load();setNotice("Changes saved.");}
+  const setSection=(next:View)=>{if(mapProject){setNotice("Save your map or use Back to project before navigating.");return;}setView(next);setOpenProjectId(null);setSearch("");setFilter("");};
+  async function saved(){try{await load();setNotice("Changes saved.");}catch{setError("Your changes were saved, but the record list could not refresh. Reload records before editing again.");}}
   async function share(project:Project,enable:boolean){
     setBusy(project.id);setError("");
     try{
@@ -45,6 +47,7 @@ export default function AdminApp({userEmail}:{userEmail:string}){
     catch{setError("Clipboard unavailable. Open the customer page and copy its address.");}
   }
   function newRecord(){
+    if(mapProject){setNotice("Save your map or use Back to project first.");return;}
     if(view==="clients")setEditor({kind:"client"});
     else if(view==="estimates"||view==="invoices"){
       if(!data.projects.length){setNotice("Add a client and project before creating a document.");setSection("projects");return;}
@@ -57,7 +60,7 @@ export default function AdminApp({userEmail}:{userEmail:string}){
   const projectCard=(p:Project)=><article className="project-card" key={p.id}>
     {parseMap(p)?<button className="project-map-thumbnail" onClick={()=>setMapProject(p)} aria-label={"Edit map for "+p.name}><MapPreview map={parseMap(p)!} title={p.name}/></button>:<button className="project-map-empty" onClick={()=>setMapProject(p)}><span>＋</span>Add a planting map</button>}
     <div className="project-card-body"><div className="record-eyebrow"><span>{services[p.serviceType as keyof typeof services]}</span><Status value={p.status}/></div><h2>{p.name}</h2><p>{clientName(p.clientId)}</p>{p.siteAddress&&<p className="field-hint">{p.siteAddress}</p>}{p.targetStartDate&&<p className="field-hint">Target start · {p.targetStartDate}</p>}
-      <div className="record-actions"><button onClick={()=>setEditor({kind:"project",record:p})}>Edit project</button><button onClick={()=>setMapProject(p)}>{parseMap(p)?"Edit map":"Add map"}</button></div>
+      <div className="record-actions"><button className="admin-save" onClick={()=>{setOpenProjectId(p.id);setView("projects");}}>Open project & items</button><button onClick={()=>setEditor({kind:"project",record:p})}>Edit details</button><button onClick={()=>{setOpenProjectId(p.id);setMapProject(p);}}>{parseMap(p)?"Edit map":"Add map"}</button></div>
       <div className="project-sharing">{p.shareToken?<><a href={publicOrigin+"/projects/"+p.shareToken} target="_blank" rel="noreferrer">View customer page ↗</a><button onClick={()=>void copyLink(p)}>Copy link</button><button disabled={busy===p.id} onClick={()=>{if(confirm("Revoke this customer's link? Existing links will stop working."))void share(p,false);}}>Revoke</button></>:<button disabled={busy===p.id} onClick={()=>void share(p,true)}>Enable customer link</button>}</div>
     </div>
   </article>;
@@ -71,11 +74,11 @@ export default function AdminApp({userEmail}:{userEmail:string}){
     <section className="admin-workspace"><header className="admin-topbar"><div><p>Perfect Prairie · Field Office</p><h1>{view==="overview"?"The work ahead":view==="mapped"?"On the map":pretty(view)}</h1></div><button className="admin-new" onClick={newRecord}>＋ New {view==="clients"?"client":view==="estimates"?"estimate":view==="invoices"?"invoice":"project"}</button></header>
       {error&&<div className="admin-alert" role="alert">{error}<button onClick={()=>{setError("");void load().catch(e=>setError(e.message));}}>Reload records</button></div>}
       {notice&&<div className="office-notice" role="status">{notice}<button onClick={()=>setNotice("")} aria-label="Dismiss notification">×</button></div>}
-      {loading?<p className="admin-content">Loading your Field Office…</p>:mapProject?<MapWorkspace initial={parseMap(mapProject)} onClose={()=>setMapProject(null)} onSave={async map=>{
+      {loading?<p className="admin-content">Loading your Field Office…</p>:mapProject?<MapWorkspace initial={parseMap(mapProject)} items={data.projectItems.filter(i=>i.projectId===mapProject.id)} onClose={()=>{setOpenProjectId(mapProject.id);setMapProject(null);}} onSave={async map=>{
         const response=await fetch("/api/admin/project-map",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:mapProject.id,revision:mapProject.revision,map})});
-        const result=await response.json() as { error?: string };if(!response.ok)throw new Error(result.error||"Could not save map.");
-        await saved();setMapProject(null);
-      }}/>:<div className="admin-content">
+        const result=await response.json() as { error?: string; project: Project };if(!response.ok)throw new Error(result.error||"Could not save map.");
+        setData(data=>({...data,projects:data.projects.map(p=>p.id===result.project.id?result.project:p)}));setNotice("Map saved.");setOpenProjectId(mapProject.id);setView("projects");setMapProject(null);
+      }}/>:openProjectId&&projects.has(openProjectId)?<div className="admin-content"><ProjectNotebook project={projects.get(openProjectId)!} data={data} onClose={()=>setOpenProjectId(null)} onEdit={setEditor} onMap={()=>setMapProject(projects.get(openProjectId)!)} onItemSaved={item=>{setData(data=>({...data,projectItems:data.projectItems.some(i=>i.id===item.id)?data.projectItems.map(i=>i.id===item.id?item:i):[...data.projectItems,item]}));setNotice("Project item saved.");}}/></div>:<div className="admin-content">
         {view==="overview"?<><section className="admin-metrics"><Metric label="Active projects" value={String(data.projects.filter(p=>!["complete","on-hold"].includes(p.status)).length)} onClick={()=>setSection("projects")}/><Metric label="Open estimates" value={String(data.estimates.filter(e=>["draft","sent"].includes(e.status)).length)} onClick={()=>setSection("estimates")}/><Metric label="Awaiting payment" value={money(data.invoices.filter(i=>i.status==="sent").reduce((s,i)=>s+i.totalCents,0))} onClick={()=>setSection("invoices")}/></section>
           <section className="admin-panel"><div className="admin-panel-heading"><h2>Projects in the field</h2><button onClick={()=>setSection("projects")}>All projects →</button></div>{data.projects.length?<div className="project-grid">{data.projects.slice(0,4).map(projectCard)}</div>:<Empty title="Make room for your first project" text="Add a client, then connect their project, planting plan, estimate and invoice."/>}</section></>:
         view==="mapped"?<><ProjectsMap projects={mapped} onOpen={p=>{setSection("projects");setMapProject(p);}}/><p className="field-hint">{mapped.length} mapped projects. Select a prairie pin to open its plan.</p>{!mapped.length&&<Empty title="Your projects, on the map" text="Choose Add map on a project to place its first plan."/>}</>:
@@ -102,7 +105,7 @@ function DocumentPreview({document,kind,project,clientName,onClose,onShare,busy}
     await Promise.all(imgs.map(img=>img.complete?Promise.resolve():img.decode().catch(()=>{})));
     window.document.body.classList.add("printing-document");window.print();window.document.body.classList.remove("printing-document");setPrinting(false);
   }
-  return <dialog ref={dialog} className="document-dialog" onCancel={e=>{e.preventDefault();onClose();}}><div className="document-controls"><button onClick={onClose}>← Close preview</button><div>{url&&document.status!=="draft"?<a href={url+"#"+document.id} target="_blank" rel="noreferrer">Open digital document ↗</a>:<span>{!url?"Enable the project link to include it on this document.":"Drafts are visible only in the Field Office."}</span>}{!url&&<button disabled={busy} onClick={()=>void onShare(project,true)}>Enable customer link</button>}<button className="admin-save" onClick={()=>void print()} disabled={printing}>{printing?"Preparing…":"Print / save PDF"}</button></div></div>
+  return <dialog ref={dialog} className="document-dialog" onCancel={e=>{e.preventDefault();onClose();}}><div className="document-controls"><button onClick={onClose}>← Close preview</button><div>{url&&!["draft","void"].includes(document.status)?<a href={url+"#"+document.id} target="_blank" rel="noreferrer">Open digital document ↗</a>:<span>{!url?"Enable the project link to include it on this document.":"Draft and void documents are visible only in the Field Office."}</span>}{!url&&<button disabled={busy} onClick={()=>void onShare(project,true)}>Enable customer link</button>}<button className="admin-save" onClick={()=>void print()} disabled={printing}>{printing?"Preparing…":"Print / save PDF"}</button></div></div>
     <CustomerDocument document={{...document,kind,dueDate:document.dueDate||document.validUntil||null}} project={{name:project.name,map:parseMap(project),url}} clientName={clientName}/>
   </dialog>;
 }

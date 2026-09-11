@@ -30,7 +30,8 @@ function setup(t){
   const DB=new LocalD1();
   for(const name of readdirSync(new URL("../drizzle/",import.meta.url)).filter(n=>n.endsWith(".sql")).sort())DB.sqlite.exec(readFileSync(new URL("../drizzle/"+name,import.meta.url),"utf8"));
   t.after(()=>DB.sqlite.close());
-  const env={DB,ASSETS:{fetch:async()=>new Response("Not found",{status:404})}};
+  const files=new Map();
+  const env={DB,PROJECT_FILES:{put:async(key,value)=>{files.set(key,value);},get:async key=>files.has(key)?{body:files.get(key)}:null},ASSETS:{fetch:async()=>new Response("Not found",{status:404})}};
   const request=async(path,method="GET",body,host="http://localhost",headers={})=>worker.fetch(new Request(host+path,{method,headers:{"content-type":"application/json",...headers},...(body?{body:JSON.stringify(body)}:{})}),env,ctx);
   async function write(path,method,body,status=201){const response=await request(path,method,body);const result=await response.json();assert.equal(response.status,status,JSON.stringify(result));return result;}
   return {DB,request,write};
@@ -38,6 +39,27 @@ function setup(t){
 const client=()=>({id:randomUUID(),firstName:"Test",lastName:"Gardener",organization:"",email:"customer@example.com",phone:"3095550100",address:"",city:"Peoria",state:"IL",postalCode:"",notes:"INTERNAL_CLIENT_SECRET"});
 const project=clientId=>({id:randomUUID(),clientId,name:"Prairie plan",serviceType:"native-landscape",status:"lead",siteAddress:"PRIVATE_ADDRESS_SECRET",description:"INTERNAL_FIELD_SECRET",publicSummary:"Native habitat planting",targetStartDate:"2026-10-01"});
 const doc=projectId=>({id:randomUUID(),kind:"estimate",projectId,status:"sent",issueDate:"2026-09-10",dueDate:"2026-10-10",markupPercent:30,notes:"Customer payment terms",items:[{description:"Site preparation",quantity:2,unitCost:"125.50"},{description:"Native plants",quantity:"3.125",unitCost:"40.00"}]});
+
+test("project items persist, archive safely, protect media and reject foreign map placements",async t=>{
+  const {write,request,DB}=setup(t),c=client(),p=project(c.id),p2=project(c.id);
+  await write("/api/admin/clients","POST",c);await write("/api/admin/projects","POST",p);await write("/api/admin/projects","POST",p2);
+  const item={id:randomUUID(),projectId:p.id,name:"Native seed mix",category:"seed-mix",quantity:"2.5",unit:"lb",unitCost:"24.50",billable:true,archived:false,notes:"INTERNAL_ITEM_SECRET",sourceUrl:"https://supplier.example/private"};
+  await write("/api/admin/project-items","POST",item);await write("/api/admin/project-items","POST",item,200);
+  await write("/api/admin/project-items","PATCH",{...item,revision:0,quantity:3},200);
+  await write("/api/admin/project-items","PATCH",{...item,revision:0,name:"Stale"},409);
+  const overview=await (await request("/api/admin/overview")).json();assert.equal(overview.projectItems.length,1);assert.equal(overview.projectItems[0].quantityMilli,3000);
+  const map={center:[40.69,-89.59],zoom:18,frame:{provider:"usda-naip",bounds:[-9973100,4966000,-9972500,4966500]},features:[{id:randomUUID(),kind:"symbol",title:"Native seed mix",color:"#cc8844",symbol:"prairie",points:[[40.69,-89.59]],projectItemId:item.id}]};
+  await write("/api/admin/project-map","PATCH",{id:p2.id,revision:0,map},400);
+  await write("/api/admin/project-map","PATCH",{id:p.id,revision:0,map},200);
+  const d={...doc(p.id),items:[{description:item.name,quantity:3,unitCost:item.unitCost}]};await write("/api/admin/documents","POST",d);
+  await write("/api/admin/project-items","PATCH",{...item,revision:1,unitCost:999,archived:true},200);
+  assert.equal(DB.sqlite.prepare("SELECT unit_cost_cents FROM estimate_items WHERE estimate_id=?").get(d.id).unit_cost_cents,2450);
+  assert.match(DB.sqlite.prepare("SELECT map_json FROM projects WHERE id=?").get(p.id).map_json,/Native seed mix/);
+  const shared=await write("/api/admin/project-map","PATCH",{id:p.id,revision:1,sharing:true},200);
+  const html=await (await request("/projects/"+shared.project.shareToken)).text();assert.doesNotMatch(html,/INTERNAL_ITEM_SECRET|supplier\.example|imageKey|unitCostCents/);
+  assert.equal((await request("/api/admin/project-items?image="+item.id,"GET",undefined,"https://www.perfectprairie.com")).status,404);
+  await write("/api/admin/project-items","PATCH",{...item,revision:2,imageData:"data:image/svg+xml;base64,PHN2Zz4="},400);
+});
 
 test("create/edit clients, projects and itemized documents; server computes markup and keeps document numbers",async t=>{
   const {write,request,DB}=setup(t),c=client(),p=project(c.id),d=doc(p.id);

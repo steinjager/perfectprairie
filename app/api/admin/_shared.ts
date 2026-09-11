@@ -1,7 +1,7 @@
 import { getD1 } from "@/db";
 import { InputError } from "@/lib/operations";
 
-export async function readInput(request: Request): Promise<Record<string, unknown>> {
+export async function readInput(request: Request, limit = 300_000): Promise<Record<string, unknown>> {
   const reader = request.body?.getReader();
   if (!reader) throw new InputError("A JSON request is required.");
   let length = 0; const chunks: Uint8Array[] = [];
@@ -9,7 +9,7 @@ export async function readInput(request: Request): Promise<Record<string, unknow
     const { done, value } = await reader.read();
     if (done) break;
     length += value.byteLength;
-    if (length > 300_000) { await reader.cancel(); throw new InputError("This request is too large.", 413); }
+    if (length > limit) { await reader.cancel(); throw new InputError("This request is too large.", 413); }
     chunks.push(value);
   }
   const bytes = new Uint8Array(length); let offset = 0;

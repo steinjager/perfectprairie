@@ -1,6 +1,7 @@
 export type Position = [number, number]; // latitude, longitude
-export type MapFeature = { id: string; kind: "area" | "symbol" | "text"; title: string; color: string; points: Position[]; symbol?: string };
-export type ProjectMap = { center: Position; zoom: number; features: MapFeature[] };
+export type MapFeature = { id: string; kind: "area" | "symbol" | "text"; title: string; color: string; points: Position[]; symbol?: string; projectItemId?: string };
+export type MapFrame = { provider: "usda-naip"; bounds: [number, number, number, number] };
+export type ProjectMap = { center: Position; zoom: number; features: MapFeature[]; frame?: MapFrame };
 export const symbols: Record<string, string> = { prairie: "🌾", flowers: "🌼", tree: "🌳", water: "💧", habitat: "🦋", rock: "🪨" };
 export const services = { consultation: "On-site consultation", "native-landscape": "Native landscape", "prairie-wildflower": "Prairie & wildflower plot" };
 export const projectStatuses = ["lead", "scheduled", "in-progress", "complete", "on-hold"];
@@ -90,9 +91,15 @@ export function validateMap(value: unknown): ProjectMap | null {
     if (!Array.isArray(p) || p.length !== 2 || p.some(v => typeof v !== "number" || !Number.isFinite(v)) || Math.abs(p[0]) > 85 || Math.abs(p[1]) > 180) throw new InputError("Invalid map coordinates.");
     return [p[0], p[1]];
   };
-  if (!Number.isInteger(map.zoom) || map.zoom < 2 || map.zoom > 22 || !Array.isArray(map.features) || map.features.length > 100) throw new InputError("A map supports up to 100 features and zoom levels 2–22.");
+  if (typeof map.zoom !== "number" || !Number.isFinite(map.zoom) || map.zoom < 2 || map.zoom > 22 || !Array.isArray(map.features) || map.features.length > 100) throw new InputError("A map supports up to 100 features and zoom levels 2–22.");
   const used = new Set<string>();
-  return { center: position(map.center), zoom: map.zoom, features: map.features.map(f => {
+  let frame: MapFrame | undefined;
+  if (map.frame !== undefined) {
+    const b = map.frame?.bounds;
+    if (map.frame?.provider !== "usda-naip" || !Array.isArray(b) || b.length !== 4 || b.some(n => typeof n !== "number" || !Number.isFinite(n) || Math.abs(n) > 20037509) || b[0] >= b[2] || b[1] >= b[3]) throw new InputError("Invalid locked map extent.");
+    frame = { provider: "usda-naip", bounds: [b[0], b[1], b[2], b[3]] };
+  }
+  return { center: position(map.center), zoom: map.zoom, ...(frame ? { frame } : {}), features: map.features.map(f => {
     if (!f || !["area", "text", "symbol"].includes(f.kind)) throw new InputError("Invalid map feature.");
     if (!Array.isArray(f.points) || f.points.length > 200 || f.points.length < (f.kind === "area" ? 3 : 1) || (f.kind !== "area" && f.points.length !== 1)) throw new InputError("Areas need at least three corners; labels need one position.");
     const featureId = id(f.id);
@@ -103,6 +110,6 @@ export function validateMap(value: unknown): ProjectMap | null {
     const points = f.points.map(position);
     if (f.kind === "area" && areaSqMeters(points) < .01) throw new InputError("Draw an area with at least three different corners.");
     if (f.kind === "area" && (new Set(points.map(p=>p.join(","))).size!==points.length || hasCrossingEdges(points))) throw new InputError("Area edges must not cross or repeat corners. Adjust the shape before saving.");
-    return { id: featureId, kind: f.kind, title: text(f.title, "Map label", 120, true), color: f.color, points, ...(f.kind === "symbol" ? { symbol: f.symbol } : {}) };
+    return { id: featureId, kind: f.kind, title: text(f.title, "Map label", 120, true), color: f.color, points, ...(f.kind === "symbol" ? { symbol: f.symbol } : {}), ...(f.projectItemId ? { projectItemId: id(f.projectItemId) } : {}) };
   }) };
 }

@@ -41,5 +41,6 @@
   },
   "images": {
     "binding": "IMAGES"
-  }
+  },
+  "r2_buckets": [{ "binding": "PROJECT_FILES", "bucket_name": "perfect-prairie-project-files" }]
 }

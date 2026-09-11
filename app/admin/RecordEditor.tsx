@@ -2,15 +2,17 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { AdminData, Editor, DocumentRecord } from "@/lib/admin-types";
 import { calculateItems, estimateStatuses, invoiceStatuses, money, pretty, projectStatuses, services } from "@/lib/operations";
+import { projectItemLines } from "@/lib/project-items";
 type DraftItem = { key: string; description: string; quantity: string; unitCost: string };
 export default function RecordEditor({ editor, data, onSaved, onClose }: { editor: Editor; data: AdminData; onSaved: () => Promise<void>; onClose: () => void }) {
   const dialog=useRef<HTMLDialogElement>(null), dirty=useRef(false);
   const [requestId]=useState(()=>crypto.randomUUID()), [error,setError]=useState(""), [saving,setSaving]=useState(false);
   const document = editor.kind==="estimate"||editor.kind==="invoice";
   const source = document ? editor.record || editor.source : undefined;
+  const [projectId,setProjectId]=useState(document ? source?.projectId || editor.projectId || "" : "");
   const [markup,setMarkup]=useState(String(source ? source.markupBps/100 : 30));
   const [status,setStatus]=useState(source && editor.record ? source.status : "draft");
-  const [items,setItems]=useState<DraftItem[]>(()=>source?.items.map(i=>({key:crypto.randomUUID(),description:i.description,quantity:String(i.quantityMilli/1000),unitCost:((i.unitCostCents??i.unitPriceCents)/100).toFixed(2)}))||[{key:crypto.randomUUID(),description:"",quantity:"1",unitCost:"0.00"}]);
+  const [items,setItems]=useState<DraftItem[]>(()=>source?.items.map(i=>({key:crypto.randomUUID(),description:i.description,quantity:String(i.quantityMilli/1000),unitCost:((i.unitCostCents??i.unitPriceCents)/100).toFixed(2)})) || (document && editor.projectItems?.some(i=>i.billable&&!i.archived) ? projectItemLines(editor.projectItems) : [{key:crypto.randomUUID(),description:"",quantity:"1",unitCost:"0.00"}]));
   const record = (editor.record || source || {}) as unknown as Record<string, string | number | null>;
   useEffect(()=>{
     dialog.current?.showModal();
@@ -54,8 +56,9 @@ export default function RecordEditor({ editor, data, onSaved, onClose }: { edito
         <p className="field-hint">The customer summary and map appear on shared project pages. Internal field notes stay in the Field Office.</p>
       </>}
       {document&&<>
-        {select("projectId","Project",data.projects.map(p=>({value:p.id,label:p.name})))}
-        <div className="admin-form-row">{field("issueDate","Issue date","date",true,10,source&&editor.record?source.issueDate:new Date().toLocaleDateString("en-CA"))}{field("dueDate",editor.kind==="invoice"?"Due date":"Valid until","date",false,10,source?.dueDate||source?.validUntil||"")}</div>
+        <label className="admin-field"><span>Project</span><select name="projectId" required value={projectId} onChange={e=>{const next=e.target.value;if(items.some(i=>i.description)&&!confirm("Change the linked project? Current line items will be kept until you explicitly replace them."))return;setProjectId(next);}}><option value="">Choose project</option>{data.projects.map(p=><option value={p.id} key={p.id}>{p.name}</option>)}</select></label>
+        {projectId&&<div className="project-import-panel"><p>Project items are copied, not linked. Later planning changes never alter this document.</p><button type="button" disabled={!data.projectItems.some(i=>i.projectId===projectId&&i.billable&&!i.archived)} onClick={()=>{const lines=projectItemLines(data.projectItems.filter(i=>i.projectId===projectId));if(lines.length>50){setError("Select at most 50 items from the project notebook.");return;}if(items.some(i=>i.description)&&!confirm("Replace this document's current line items with the project's billable items?"))return;dirty.current=true;setItems(lines);}}>Replace with project items</button></div>}
+        <div className="admin-form-row">{field("issueDate","Issue date","date",true,10,source&&editor.record?source.issueDate:new Date().toLocaleDateString("en-CA"))}{field("dueDate",editor.kind==="invoice"?"Due date":"Valid until","date",false,10,editor.record?(source?.dueDate||source?.validUntil||""):"")}</div>
         <div className="admin-form-row"><label className="admin-field"><span>Status</span><select name="status" value={status} onChange={e=>setStatus(e.target.value)}>{(editor.kind==="invoice"?invoiceStatuses:estimateStatuses).map(s=><option key={s}>{s}</option>)}</select></label>{editor.kind==="invoice"&&status==="paid"&&field("paidAt","Paid on","date",true,10,source?.paidAt||new Date().toLocaleDateString("en-CA"))}</div>
         <div className="markup-panel"><label className="admin-field"><span>Internal markup %</span><input type="number" min="0" max="500" step=".01" required value={markup} onChange={e=>setMarkup(e.target.value)}/></label><p>Added to each unit cost. A $100 cost at 30% becomes $130. Customers see only the final prices.</p></div>
         <section className="item-editor"><div className="item-heading"><h3>Line items</h3><button type="button" disabled={items.length>=50} onClick={()=>{dirty.current=true;setItems(rows=>[...rows,{key:crypto.randomUUID(),description:"",quantity:"1",unitCost:"0.00"}]);}}>＋ Add item</button></div>
