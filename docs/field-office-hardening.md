@@ -32,6 +32,16 @@ Make project planning the starting point for materials, map placements and finan
 
 The browser suite creates clearly named local-only fixtures and writes their IDs and screenshots to a temporary `prairie-mechanics-*` directory. Do not aim it at production. Clean up only those recorded fixture IDs from local D1 after testing.
 
+## Map interface refinement, 2026-09-10
+
+- One project-specific studio heading replaces the competing Projects header while mapping.
+- Editing, landscape symbols, and history use grouped controls with consistent targets. Compact mobile symbols keep accessible names and toggle states.
+- Coordinates are an optional disclosure; editing tools appear after locking. Loading has one cancellation control.
+- The inspector switches between Plan and Items. Selecting a feature opens its Plan controls; area size, title, color, geometry actions and removal have a consistent order.
+- Drawing completion and placement actions live below the canvas, never over the map. A visible Done placing action complements tool toggles and Escape.
+- Desktop, 320px, 390px, 768px and touch regression checks pass, including panel switching and ensuring the context strip does not obscure the canvas.
+- No data schema, pricing, access policy or customer-record changes.
+
 ## Operational limits
 
 - Internet is needed for aerial imagery and saving; this is not an offline field app.

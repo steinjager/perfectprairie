@@ -14,13 +14,14 @@ const layerPoints = (layer: Leaflet.Polyline | Leaflet.Polygon): Position[] => {
   const raw = layer.getLatLngs(), ring = Array.isArray(raw[0]) ? raw[0] : raw;
   return (ring as Leaflet.LatLng[]).map(p => [p.lat, p.lng]);
 };
-export default function MapWorkspace({ initial, items = [], onSave, onClose }: { initial: ProjectMap | null; items?: ProjectItem[]; onSave: (map: ProjectMap) => Promise<void>; onClose: () => void }) {
+export default function MapWorkspace({ initial, projectName, items = [], onSave, onClose }: { initial: ProjectMap | null; projectName: string; items?: ProjectItem[]; onSave: (map: ProjectMap) => Promise<void>; onClose: () => void }) {
   const [plan, setPlan] = useState<ProjectMap>(initial || { center: defaultCenter, zoom: 17, features: [] });
   const [tool, setTool] = useState<Tool>("select"), [stage, setStage] = useState<Stage>("positioning");
   const [selected, setSelected] = useState(""), [moving, setMoving] = useState(false), [vertex, setVertex] = useState<number | null>(null);
   const [notice, setNotice] = useState("Position the site, then lock the map to begin planning."), [ready, setReady] = useState(false), [saving, setSaving] = useState(false);
   const [corners, setCorners] = useState(0), [progress, setProgress] = useState<number | null>(null), [coords, setCoords] = useState("");
   const [history, setHistory] = useState<MapFeature[][]>([]), [future, setFuture] = useState<MapFeature[][]>([]);
+  const [panel, setPanel] = useState<"items" | "plan">("plan");
   const container = useRef<HTMLDivElement>(null), mapRef = useRef<Leaflet.Map | null>(null), api = useRef<typeof Leaflet | null>(null);
   const layerRefs = useRef(new Map<string, Layer>()), draft = useRef<Leaflet.Polyline | null>(null), overlay = useRef<Leaflet.ImageOverlay | null>(null);
   const imageUrl = useRef(""), controller = useRef<AbortController | null>(null), dirty = useRef(false), touched = useRef(false);
@@ -38,21 +39,23 @@ export default function MapWorkspace({ initial, items = [], onSave, onClose }: {
   function edit(id: string, update: Partial<MapFeature>) {
     return change({ ...state.current.plan, features: state.current.plan.features.map(f => f.id === id ? { ...f, ...update } : f) });
   }
+  function selectFeature(id: string) { if (state.current.selected !== id) setMoving(false); setSelected(id); setVertex(null); setPanel("plan"); }
   function choose(next: Tool, toggle = true) {
-    if (state.current.stage !== "locked" || savingRef.current) return;
-    if (draft.current && layerPoints(draft.current).length && !confirm("Discard the unfinished area?")) return;
+    if (state.current.stage !== "locked" || savingRef.current) return false;
+    if (draft.current && layerPoints(draft.current).length && !confirm("Discard the unfinished area?")) return false;
     mapRef.current?.pm.disableDraw(); draft.current = null; setCorners(0);
     const value = toggle && state.current.tool === next ? "select" : next;
     state.current.tool = value; setTool(value); setMoving(false); setVertex(null);
     if (value !== "select") setSelected("");
     if (value === "area") mapRef.current?.pm.enableDraw("Polygon", { allowSelfIntersection: false, snappable: true, snapDistance: 16, finishOn: "dblclick", finishOnEnter: true, continueDrawing: false, pathOptions: { color: "#edb84b", fillOpacity: .25 }, templineStyle: { color: "#fff", weight: 3 } });
+    return true;
   }
   function finishArea() {
     if (!draft.current) return;
     const points = layerPoints(draft.current);
     const f: MapFeature = { id: crypto.randomUUID(), kind: "area", title: "Planting area " + (state.current.plan.features.filter(f => f.kind === "area").length + 1), color: "#edb84b", points };
     if (!change({ ...state.current.plan, features: [...state.current.plan.features, f] })) return;
-    mapRef.current?.pm.disableDraw(); draft.current = null; setCorners(0); setTool("select"); state.current.tool = "select"; setSelected(f.id);
+    mapRef.current?.pm.disableDraw(); draft.current = null; setCorners(0); setTool("select"); state.current.tool = "select"; selectFeature(f.id);
   }
   function place(position: Position) {
     const s = state.current;
@@ -62,7 +65,7 @@ export default function MapWorkspace({ initial, items = [], onSave, onClose }: {
     if (s.tool.startsWith("item:") && !item) return;
     const symbol = s.tool.startsWith("symbol:") ? s.tool.slice(7) : "prairie";
     const f: MapFeature = { id: crypto.randomUUID(), kind: s.tool === "text" ? "text" : "symbol", title: item ? item.name.slice(0, 120) : s.tool === "text" ? "Plan note" : symbol, color: "#f0bd57", points: [position], ...(s.tool !== "text" ? { symbol } : {}), ...(item ? { projectItemId: item.id } : {}) };
-    if (change({ ...s.plan, features: [...s.plan.features, f] })) { setSelected(f.id); if (s.tool === "text") { setTool("select"); state.current.tool = "select"; } }
+    if (change({ ...s.plan, features: [...s.plan.features, f] })) { setSelected(f.id); if (s.tool === "text") { setTool("select"); state.current.tool = "select"; selectFeature(f.id); } }
   }
   function locate() {
     if (state.current.stage !== "positioning") return;
@@ -99,7 +102,7 @@ export default function MapWorkspace({ initial, items = [], onSave, onClose }: {
       map.on("pm:create", e => {
         const polygon = e.layer as Leaflet.Polygon, points = layerPoints(polygon); polygon.remove();
         const f: MapFeature = { id: crypto.randomUUID(), kind: "area", title: "Planting area " + (state.current.plan.features.filter(f => f.kind === "area").length + 1), color: "#edb84b", points };
-        if (change({ ...state.current.plan, features: [...state.current.plan.features, f] })) { setSelected(f.id); setTool("select"); state.current.tool = "select"; setNotice("Area complete. Drag its corners, or choose Move shape."); }
+        if (change({ ...state.current.plan, features: [...state.current.plan.features, f] })) { selectFeature(f.id); setTool("select"); state.current.tool = "select"; setNotice("Area complete. Drag its corners, or choose Move whole shape."); }
       });
       setReady(true); if (!initial) locate();
     })().catch(() => setNotice("Map tools could not load. Close and reopen the studio to retry."));
@@ -124,7 +127,7 @@ export default function MapWorkspace({ initial, items = [], onSave, onClose }: {
         layerRefs.current.set(f.id, layer); layer.addTo(map); const target = layer;
         target.on("click", e => {
           if (state.current.stage !== "locked") return;
-          if (state.current.tool === "select") { L.DomEvent.stopPropagation(e); setSelected(f.id); setVertex(null); }
+          if (state.current.tool === "select") { L.DomEvent.stopPropagation(e); selectFeature(f.id); }
           else if (target instanceof L.Marker) { L.DomEvent.stopPropagation(e); place([e.latlng.lat, e.latlng.lng]); }
         });
         if (target instanceof L.Polygon) {
@@ -220,20 +223,47 @@ export default function MapWorkspace({ initial, items = [], onSave, onClose }: {
     change({ ...state.current.plan, features }, false); setSelected(""); setVertex(null);
   }
   const feature = plan.features.find(f => f.id === selected), activeItems = items.filter(i => !i.archived);
-  const toolButton = (value: Tool, label: string, icon: string) => <button key={value} aria-pressed={tool === value} title={label} disabled={stage !== "locked" || saving} onClick={() => choose(value)}><span aria-hidden="true">{icon}</span><span>{label}</span></button>;
-  return <section className="map-studio" aria-label="Project map editor">
-    <div className="map-toolbar"><button disabled={saving} onClick={() => { if (!dirty.current && !corners || confirm("Discard unsaved map changes?")) onClose(); }}>← Back to project</button><strong>Planting studio</strong><button className="admin-save" disabled={saving || !ready || stage !== "locked"} onClick={() => void save()}>{saving ? "Saving…" : "Save map & close"}</button></div>
-    <div className="map-position-bar"><div><strong>{stage === "locked" ? "02 / Shape the plan" : "01 / Position the site"}</strong><small>{stage === "locked" ? "Geographic position locked · detailed aerial view" : "Pan and zoom to frame the whole project"}</small></div>{stage === "positioning" ? <div className="record-actions"><button disabled={!ready} onClick={locate}>◎ My location</button><button className="admin-save" disabled={!ready} onClick={() => void lock()}>LOCK MAP POSITION</button></div> : <button disabled={saving} onClick={unlock}>{stage === "loading" ? "Cancel loading" : "Unlock / reposition"}</button>}</div>
-    {stage === "positioning" && <form className="map-coordinate-form" onSubmit={e => { e.preventDefault(); const values = coords.split(",").map(s => s.trim()); const p = values.map(Number); if (values.length === 2 && values.every(Boolean) && p.every(Number.isFinite) && Math.abs(p[0]) < 85 && Math.abs(p[1]) <= 180) mapRef.current?.setView(p as Position, 18); else setNotice("Enter latitude, longitude, for example 40.6936, -89.589."); }}><label>Go to coordinates<input value={coords} onChange={e => setCoords(e.target.value)} placeholder="40.6936, -89.589"/></label><button>Go</button></form>}
-    <div className="studio-toolstrip" role="toolbar" aria-label="Map tools">{toolButton("select", "Select", "↖")}{toolButton("area", "Draw area", "▱")}{toolButton("text", "Text", "T")}{Object.entries(symbols).map(([name, icon]) => toolButton(`symbol:${name}`, name[0].toUpperCase() + name.slice(1), icon))}<button disabled={!history.length || corners > 0 || stage !== "locked"} onClick={() => timeTravel(false)}>↶ Undo</button><button disabled={!future.length || corners > 0 || stage !== "locked"} onClick={() => timeTravel(true)}>↷ Redo</button></div>
+  const toolButton = (value: Tool, label: string, icon: string) => <button type="button" key={value} aria-label={label} aria-pressed={tool === value} title={label} disabled={stage !== "locked" || saving} onClick={() => choose(value)}><span aria-hidden="true">{icon}</span><span>{label}</span></button>;
+  return <section className={"map-studio stage-" + stage} aria-label="Project map editor">
+    <header className="studio-heading">
+      <button disabled={saving} onClick={() => { if (!dirty.current && !corners || confirm("Discard unsaved map changes?")) onClose(); }}>← Back to project</button>
+      <div className="studio-title"><p>Planting studio</p><h1>{projectName}</h1></div>
+      <button className="admin-save" disabled={saving || !ready || stage !== "locked" || corners > 0} onClick={() => void save()}>{saving ? "Saving…" : "Save map & close"}</button>
+    </header>
+    <div className="map-position-bar">
+      <div className="studio-stage"><span aria-hidden="true">{stage === "locked" ? "02" : "01"}</span><div><strong>{stage === "locked" ? "Map locked" : stage === "loading" ? "Loading detailed imagery" : "Position the site"}</strong><small>{stage === "locked" ? "Choose a tool to shape your plan." : "Pan and zoom to frame the whole project."}</small></div></div>
+      {stage === "positioning" ? <div className="record-actions"><button disabled={!ready} onClick={locate}>◎ My location</button><button className="admin-save" disabled={!ready} onClick={() => void lock()}>LOCK MAP POSITION</button></div> : stage === "locked" ? <button disabled={saving} onClick={unlock}>Unlock / reposition</button> : null}
+      {stage === "positioning" && <details className="studio-coordinates"><summary>Use coordinates</summary><form className="map-coordinate-form" onSubmit={e => { e.preventDefault(); const values = coords.split(",").map(s => s.trim()); const p = values.map(Number); if (values.length === 2 && values.every(Boolean) && p.every(Number.isFinite) && Math.abs(p[0]) < 85 && Math.abs(p[1]) <= 180) { touched.current = true; mapRef.current?.setView(p as Position, 18); setNotice("Location set. Frame the site, then lock the map."); } else setNotice("Enter latitude, longitude, for example 40.6936, -89.589."); }}><label>Latitude, longitude<input value={coords} onChange={e => setCoords(e.target.value)} placeholder="40.6936, -89.589"/></label><button disabled={!ready}>Go</button></form></details>}
+    </div>
+    {stage === "locked" && <div className="studio-toolstrip" role="group" aria-label="Map tools">
+      <div className="studio-tool-group" role="group" aria-label="Editing tools">{toolButton("select", "Select", "↖")}{toolButton("area", "Draw area", "▱")}{toolButton("text", "Text", "T")}</div>
+      <div className="studio-tool-group studio-symbols" role="group" aria-label="Landscape symbols">{Object.entries(symbols).map(([name, icon]) => toolButton(`symbol:${name}`, name[0].toUpperCase() + name.slice(1), icon))}</div>
+      <div className="studio-tool-group studio-history" role="group" aria-label="Edit history"><button title="Undo last edit" disabled={saving || !history.length || corners > 0} onClick={() => timeTravel(false)}>↶ Undo</button><button title="Redo last edit" disabled={saving || !future.length || corners > 0} onClick={() => timeTravel(true)}>↷ Redo</button></div>
+    </div>}
     <div className="studio-layout" inert={saving}><div className={"studio-map-wrap tool-" + (tool === "select" ? "select" : "place")}><div className="map-canvas" ref={container}/>
       {stage === "loading" && <div className="map-loading" role="status"><span className="loading-flower" aria-hidden="true">🌼</span><h3>Bringing the landscape into focus</h3><p>{notice}</p><progress max={100} value={progress ?? undefined} aria-label="Detailed imagery download"/><small>{progress === null ? "Waiting for imagery provider…" : progress + "% downloaded"}</small><button onClick={unlock}>Cancel loading</button></div>}
-      {stage === "locked" && tool === "area" && <div className="draw-completion"><span>{corners < 3 ? corners + " corners · add at least 3" : corners + " corners · ready to close"}</span><button className="admin-save" disabled={corners < 3} onClick={finishArea}>✓ Finish area</button><button onClick={() => { mapRef.current?.pm.disableDraw(); draft.current = null; setTool("select"); state.current.tool = "select"; setCorners(0); }}>Cancel</button><small>Tap the first corner, double-click, or press Enter to close.</small></div>}
-      {stage === "locked" && tool !== "select" && tool !== "area" && <div className="map-placement-hint">Click the map to place {tool === "text" ? "a note" : tool.startsWith("item:") ? activeItems.find(i => i.id === tool.slice(5))?.name : tool.slice(7)} · click the tool again or Esc to stop</div>}
-    </div><aside className="studio-inspector">
-      {feature && stage === "locked" && <section className="map-feature-editor" key={feature.id}><p className="admin-kicker">Selected feature</p><label>Title / text<input maxLength={120} defaultValue={feature.title} onBlur={e => { const title = e.target.value.trim(); if (title && title !== feature.title) edit(feature.id, { title }); else if (!title) e.target.value = feature.title; }}/></label><label>Color<input type="color" value={feature.color} onChange={e => edit(feature.id, { color: e.target.value })}/></label>{feature.kind === "area" && <><strong>{areaLabel(feature.points)}</strong><p className="field-hint">Drag a corner to reshape. Drag or tap a midpoint to add a corner. Tap a corner, then Remove corner.</p><button aria-pressed={moving} onClick={() => { setTool("select"); state.current.tool = "select"; setMoving(v => !v); }}>{moving ? "Edit corners" : "Move whole shape"}</button><button disabled={vertex === null || feature.points.length <= 3 || moving} onClick={() => { if (vertex !== null) edit(feature.id, { points: feature.points.filter((_, i) => i !== vertex) }); setVertex(null); }}>Remove selected corner</button></>}<button className="danger" onClick={() => { change({ ...plan, features: plan.features.filter(f => f.id !== feature.id) }); setSelected(""); }}>Remove feature</button></section>}
-      <section><h3>Project items <span>{activeItems.length}</span></h3><p className="field-hint">Click an item, then click the map. Placement does not change its billable quantity. Only the label is shared.</p><div className="map-item-palette">{activeItems.map(item => <button key={item.id} disabled={stage !== "locked"} aria-pressed={tool === `item:${item.id}`} onClick={() => choose(`item:${item.id}`)}><span>🌾</span><span><strong>{item.name}</strong><small>{item.quantityMilli / 1000} {item.unit} · {plan.features.filter(f => f.projectItemId === item.id).length} placed</small></span></button>)}</div>{!activeItems.length && <p className="field-hint">Add materials and notes in the project notebook to place them here.</p>}</section>
-      <section><h3>Plan features · {plan.features.length}</h3><div className="map-feature-list">{plan.features.map(f => <button key={f.id} aria-pressed={f.id === selected} onClick={() => { if (stage === "locked") { choose("select", false); setSelected(f.id); } }}>{f.kind === "area" ? "▱" : f.kind === "text" ? "T" : symbols[f.symbol || "prairie"]} {f.title}</button>)}</div></section>
-    </aside></div><p className="map-notice" role="status">{notice}</p><p className="field-hint">Aerial imagery is historical, not live. Newer USDA imagery is loaded when you lock; detail varies by location. Measurements are approximate, not survey boundaries.</p>
+    </div><aside className="studio-inspector" aria-label="Plan inspector">
+      <div className="studio-panel-tabs" role="group" aria-label="Inspector panels"><button aria-pressed={panel === "plan"} onClick={() => setPanel("plan")}>Plan <span>{plan.features.length}</span></button><button aria-pressed={panel === "items"} onClick={() => setPanel("items")}>Items <span>{activeItems.length}</span></button></div>
+      <div className="studio-panel-body">
+      {panel === "plan" ? <>
+        {feature && stage === "locked" && tool === "select" && <section className="map-feature-editor" key={feature.id}>
+          <div className="studio-section-heading"><h2>{feature.kind === "area" ? "Planting area" : feature.kind === "text" ? "Text note" : "Map symbol"}</h2><button aria-label="Deselect feature" onClick={() => setSelected("")}>×</button></div>
+          {feature.kind === "area" && <div className="studio-area-reading"><strong>{areaLabel(feature.points)}</strong><span>{feature.points.length} corners</span></div>}
+          <label>Title / text<input key={feature.title} maxLength={120} defaultValue={feature.title} onBlur={e => { const title = e.target.value.trim(); if (title && title !== feature.title) edit(feature.id, { title }); else if (!title) e.target.value = feature.title; }}/></label>
+          <label className="studio-color-field">Color<input type="color" value={feature.color} onChange={e => edit(feature.id, { color: e.target.value })}/></label>
+          {feature.kind === "area" && <><button aria-pressed={moving} onClick={() => setMoving(v => !v)}>{moving ? "Edit corners" : "Move whole shape"}</button><p className="field-hint">{moving ? "Drag the area to move it. Choose Edit corners to reshape it." : "Drag corners to reshape; drag a midpoint to add a corner."}</p><button disabled={vertex === null || feature.points.length <= 3 || moving} onClick={() => { if (vertex !== null) edit(feature.id, { points: feature.points.filter((_, i) => i !== vertex) }); setVertex(null); }}>Remove selected corner</button></>}
+          <button className="danger" onClick={() => { change({ ...plan, features: plan.features.filter(f => f.id !== feature.id) }); setSelected(""); }}>Remove feature</button>
+        </section>}
+        <section><h2>On this map</h2>{plan.features.length ? <div className="map-feature-list">{plan.features.map(f => <button key={f.id} disabled={stage !== "locked"} aria-pressed={f.id === selected && tool === "select"} onClick={() => { if (choose("select", false)) selectFeature(f.id); }}><span aria-hidden="true">{f.kind === "area" ? "▱" : f.kind === "text" ? "T" : symbols[f.symbol || "prairie"]}</span><span>{f.title}<small>{f.kind === "area" ? areaLabel(f.points) : f.projectItemId ? "Project item" : f.kind === "text" ? "Text note" : "Landscape symbol"}</small></span></button>)}</div> : <p className="studio-empty">{stage === "locked" ? "Draw your first planting area or place a symbol using the tools above." : "Frame your site and lock the map to start your planting plan."}</p>}</section>
+      </> : <section><h2>Project items</h2><p className="field-hint">Choose an item, then click the map to place it. Only its label is shared; billing quantities stay unchanged.</p><div className="map-item-palette">{activeItems.map(item => <button key={item.id} disabled={stage !== "locked"} aria-pressed={tool === `item:${item.id}`} onClick={() => choose(`item:${item.id}`)}><span aria-hidden="true">🌾</span><span><strong>{item.name}</strong><small>{item.quantityMilli / 1000} {item.unit} · {plan.features.filter(f => f.projectItemId === item.id).length} placed</small></span></button>)}</div>{!activeItems.length && <p className="studio-empty">Add materials and notes in the project notebook to place them here.</p>}</section>}
+      </div>
+    </aside>
+      <div className="studio-context" aria-label="Current map action">
+        {stage === "locked" && tool === "area" ? <div className="draw-completion"><div><strong>Draw planting area</strong><span>{corners < 3 ? corners + " corners · add at least 3" : corners + " corners · ready to close"}</span></div><button className="admin-save" disabled={corners < 3} onClick={finishArea}>✓ Finish area</button><button onClick={() => { mapRef.current?.pm.disableDraw(); draft.current = null; setTool("select"); state.current.tool = "select"; setCorners(0); }}>Cancel</button><small>Tap the first corner or press Enter to close.</small></div>
+        : stage === "locked" && tool !== "select" ? <div className="studio-placement"><p>Click the map to place <strong>{tool === "text" ? "a note" : tool.startsWith("item:") ? activeItems.find(i => i.id === tool.slice(5))?.name : tool.slice(7)}</strong>.</p><button onClick={() => choose("select", false)}>Done placing</button></div>
+        : <p>{stage === "locked" ? feature ? "Edit the selection in the Plan panel. Changes are saved with Save map & close." : "Select a feature to edit it, or choose a drawing tool above." : stage === "loading" ? "Your completed plan is retained while imagery loads." : "Move and zoom the map, then choose Lock map position."}</p>}
+      </div>
+    </div>
+    <footer className="studio-footer"><p className="map-notice" role="status">{notice}</p><details><summary>Imagery & measurements</summary><p>Aerial imagery is historical, not live. USDA detail varies by location. Measurements are approximate, not survey boundaries.</p></details></footer>
   </section>;
 }

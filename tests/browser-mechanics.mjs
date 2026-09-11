@@ -24,19 +24,20 @@ async function openProject() {
 }
 async function lock() {
   await button("LOCK MAP POSITION").click();
-  await page.getByText("02 / Shape the plan", { exact: true }).waitFor({ timeout: 60000 });
+  await page.getByText("Map locked", { exact: true }).waitFor({ timeout: 60000 });
   await page.locator(".map-canvas.leaflet-container").waitFor();
   assert.ok(await page.locator(".leaflet-image-layer").evaluate(img => img.complete && img.naturalWidth >= 2000));
 }
 try {
   await openProject(); await button("Add map").click();
-  await page.getByRole("textbox", { name: "Go to coordinates", exact: true }).fill("40.6936, -89.589"); await button("Go").click();
+  await page.getByText("Use coordinates", { exact: true }).click();
+  await page.getByRole("textbox", { name: "Latitude, longitude", exact: true }).fill("40.6936, -89.589"); await button("Go").click();
   await lock();
   console.log("PASS detailed imagery decoded and navigation locked");
   await button("Draw area").click();
   const canvas = page.locator(".map-canvas"), box = await canvas.boundingBox(); assert.ok(box.width > 450);
   for (const [x, y] of [[130, 130], [350, 130], [350, 350], [130, 350], [130, 130]]) await canvas.click({ position: { x, y } });
-  await page.getByRole("heading", { name: "Plan features · 1", exact: true }).waitFor();
+  await button("Plan 1").waitFor();
   assert.equal(await page.locator(".marker-icon:not(.marker-icon-middle)").count(), 4);
   assert.equal(await button("Select").getAttribute("aria-pressed"), "true");
   console.log("PASS first-corner polygon completion");
@@ -45,7 +46,7 @@ try {
   await page.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2); await page.mouse.down(); await page.mouse.move(handle.x + 55, handle.y + 35, { steps: 12 }); await page.mouse.up();
   await page.waitForFunction(before => document.querySelector(".map-feature-editor strong")?.textContent !== before, areaBefore);
   await button("↶ Undo").click();
-  await page.getByRole("button", { name: "▱ Planting area 1", exact: true }).click();
+  await page.locator(".map-feature-list").getByRole("button", { name: /^Planting area 1/ }).click();
   await expect(page.locator(".map-feature-editor strong")).toHaveText(areaBefore);
   console.log("PASS vertex drag and undo preserve geometry");
   handle = await page.locator(".marker-icon:not(.marker-icon-middle)").first().boundingBox();
@@ -54,7 +55,7 @@ try {
   await page.locator(".marker-icon:not(.marker-icon-middle)").first().click();
   await button("Remove selected corner").click();
   await expect(page.locator(".marker-icon:not(.marker-icon-middle)")).toHaveCount(3);
-  await button("↶ Undo").click(); await page.getByRole("button", { name: "▱ Planting area 1", exact: true }).click();
+  await button("↶ Undo").click(); await page.locator(".map-feature-list").getByRole("button", { name: /^Planting area 1/ }).click();
   await expect(page.locator(".marker-icon:not(.marker-icon-middle)")).toHaveCount(4);
   console.log("PASS crossing-edge rollback, corner removal and undo");
   await button("Move whole shape").click();
@@ -63,9 +64,17 @@ try {
   assert.notEqual(await polygon.getAttribute("d"), beforeMove);
   await button("Edit corners").click();
   console.log("PASS whole-area movement");
+  await button("Items 1").click();
   await page.getByRole("button", { name: /Test seed mix.*0 placed/ }).click(); await canvas.click({ position: { x: 210, y: 230 } }); await canvas.click({ position: { x: 420, y: 210 } });
   await page.getByRole("button", { name: /Test seed mix.*2 placed/ }).waitFor();
   await page.getByRole("button", { name: /Test seed mix.*2 placed/ }).click(); assert.equal(await button("Select").getAttribute("aria-pressed"), "true");
+  await button("Plan 3").click();
+  await expect(page.locator(".map-feature-list button")).toHaveCount(3);
+  await expect(page.locator(".map-item-palette")).toHaveCount(0);
+  await button("Items 1").click();
+  const contextBox = await page.locator(".studio-context").boundingBox(), mapBox = await canvas.boundingBox();
+  assert.ok(contextBox.y >= mapBox.y + mapBox.height - 1, "Editing actions must not cover the map");
+  assert.equal(await page.locator(".admin-topbar").count(), 0, "Map has one project heading, not competing page headers");
   console.log("PASS item placement on top of an area, repeated placement and click-off tool");
   await page.screenshot({ path: join(artifacts, "map-desktop.png"), fullPage: true });
   await button("Save map & close").click(); await button("Create estimate").click();
@@ -76,31 +85,36 @@ try {
   assert.equal(estimate.totalCents, 7963); assert.equal(estimate.items[0].unitCostCents, 2450);
   console.log("PASS project items copy into a priced estimate");
   await openProject(); await button("Open map studio").click(); await lock();
-  await page.getByRole("heading", { name: "Plan features · 3", exact: true }).waitFor();
+  await button("Plan 3").waitFor();
   console.log("PASS saved map extent and placements reopen");
   await page.setViewportSize({ width: 390, height: 844 });
   await button("Draw area").click();
   for (const [x, y] of [[55, 90], [180, 90], [180, 220]]) await canvas.click({ position: { x, y } });
-  await button("✓ Finish area").click(); await page.getByRole("heading", { name: "Plan features · 4", exact: true }).waitFor();
+  await button("✓ Finish area").click(); await button("Plan 4").waitFor();
+  for (const width of [320, 768, 390]) {
+    await page.setViewportSize({ width, height:844 });
+    await page.waitForTimeout(150);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, `No overflow at ${width}px`);
+  }
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
   await page.screenshot({ path: join(artifacts, "map-mobile.png"), fullPage: true });
   console.log("PASS narrow mobile completion and no horizontal overflow");
   await button("Unlock / reposition").click();
   await page.route("**/exportImage?**", async route => { await new Promise(r => setTimeout(r, 1500)); await route.abort(); });
   await button("LOCK MAP POSITION").click(); await page.getByRole("progressbar").waitFor(); await button("Cancel loading").first().click();
-  await button("LOCK MAP POSITION").waitFor(); await page.waitForTimeout(1800); assert.equal(await button("Draw area").isEnabled(), false);
-  assert.equal(await page.getByRole("heading", { name: "Plan features · 4", exact: true }).count(), 1);
+  await button("LOCK MAP POSITION").waitFor(); await page.waitForTimeout(1800); assert.equal(await button("Draw area").count(), 0);
+  assert.equal(await button("Plan 4").count(), 1);
   console.log("PASS cancelled imagery cannot re-lock or erase completed features");
   const touchContext = await browser.newContext({ viewport:{width:390,height:844}, isMobile:true, hasTouch:true });
   const touch = await touchContext.newPage();
   await touch.goto(base + "/admin"); await touch.getByRole("navigation",{name:"Operations"}).getByRole("button",{name:/^Projects/}).tap();
   await touch.getByRole("article").filter({has:touch.getByRole("heading",{name:projectName,exact:true})}).getByRole("button",{name:"Open project & items",exact:true}).tap();
   await touch.getByRole("button",{name:"Open map studio",exact:true}).tap(); await touch.getByRole("button",{name:"LOCK MAP POSITION",exact:true}).tap();
-  await touch.getByText("02 / Shape the plan",{exact:true}).waitFor({timeout:60000});
+  await touch.getByText("Map locked",{exact:true}).waitFor({timeout:60000});
   await touch.getByRole("button",{name:"Draw area",exact:true}).tap();
   const touchCanvas=touch.locator(".map-canvas");
   for(const [x,y] of [[60,80],[240,80],[240,200],[60,80]])await touchCanvas.tap({position:{x,y}});
-  await touch.getByRole("heading",{name:"Plan features · 4",exact:true}).waitFor();
+  await touch.getByRole("button",{name:"Plan 4",exact:true}).waitFor();
   const touchHandle=await touch.locator(".marker-icon:not(.marker-icon-middle)").first().boundingBox();
   const touchArea=await touch.locator(".map-feature-editor strong").innerText();
   const cdp=await touchContext.newCDPSession(touch);
