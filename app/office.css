@@ -48,7 +48,7 @@
 .client-card dd { margin:0; overflow-wrap:anywhere; }
 .client-card dt { color:#84634f; }
 .client-avatar { width:42px; height:42px; background:#ead2b8; border-radius:50%; display:grid; place-items:center; color:#713521; }
-.records-table th { font-size:12px; }
+.records-table th { font-size:12px; position:relative; }
 .records-table td { padding:19px 18px; font-size:14px; }
 .records-table td>span,.records-table td>small { display:block; margin-top:5px; font-size:13px; color:#84634f; }
 .records-table .record-actions { margin:0; }
@@ -125,7 +125,38 @@ dialog::backdrop { background:#291c17aa; backdrop-filter:blur(3px); }
 .document-art-left { top:80px; left:0; }
 .document-art-right { bottom:140px; right:0; }
 .document-heading { display:flex; justify-content:space-between; gap:20px; border-bottom:2px solid #985037; padding-bottom:22px; }
-.document-heading>div:first-child { display:flex; align-items:center; gap:13px; }
+.document-heading>div:first-child { display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
+.document-brand>img { width:144px; height:138px; object-fit:contain; }
+.document-brand small { line-height:1.5; margin-top:5px; }
+.document-closing { display:grid; grid-template-columns:80px minmax(0,1fr) 80px; gap:16px; align-items:center; text-align:center; break-inside:avoid; margin:20px 0 0; }
+.document-closing p { font-size:13px; margin:8px 0; }
+.document-flower { width:80px; height:110px; object-fit:contain; }
+.customer-document footer>div { display:grid; text-align:right; }
+.project-client-picker { display:flex; gap:12px; align-items:center; }
+.project-client-picker>label { flex:1; min-width:0; }
+.map-folders { display:grid; gap:16px; margin-top:24px; }
+.map-folder { background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:16px; }
+.map-folder summary { cursor:pointer; font-weight:700; }
+.map-folder .project-grid { margin-top:16px; }
+.map-overview-controls { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:16px; }
+.map-overview-controls select { padding:10px; border:1px solid var(--line); background:var(--paper); border-radius:6px; font-size:16px; }
+.map-service-legend { display:flex; flex-wrap:wrap; gap:16px; font-size:14px; margin:12px 0; }
+.map-service-legend span { display:flex; align-items:center; gap:6px; }
+.map-location-area { padding:12px 0; border-bottom:1px solid var(--line); font-size:14px; overflow-wrap:anywhere; }
+.map-location-area p { white-space:pre-wrap; }
+.map-save-details { display:grid; gap:14px; }
+.map-save-details p { margin:5px 0; font-size:14px; overflow-wrap:anywhere; }
+.studio-inspector textarea,.studio-inspector select { width:100%; font:16px/1.4 Arial,sans-serif; padding:8px; color:#38231c; border:1px solid #ceb79e; border-radius:5px; background:#fffdf7; }
+.studio-inspector textarea { resize:vertical; }
+.estimate-map-attachment { padding:16px; margin-bottom:20px; border:1px solid var(--line); border-radius:8px; }
+.estimate-map-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.estimate-map-grid>div { min-width:0; }
+.estimate-map-grid button { margin-top:10px; }
+.estimate-map-drop { border:2px dashed #ad8064; padding:12px; border-radius:8px; }
+.estimate-map-drop>strong { display:block; margin-bottom:8px; }
+.estimate-map-grid [draggable=true] { cursor:grab; }
+@media(max-width:600px) { .estimate-map-grid{grid-template-columns:1fr;} .document-closing{grid-template-columns:48px minmax(0,1fr) 48px;gap:8px;} .document-flower{width:48px;height:90px;} .project-client-picker{align-items:stretch;flex-direction:column;gap:0;} .project-client-picker>button{align-self:flex-start;margin-bottom:16px;} }
+@media print { .document-heading{break-inside:avoid;} .document-brand>img{width:120px;height:115px;} .document-closing{grid-template-columns:64px minmax(0,1fr) 64px;gap:12px;} .document-flower{width:64px;height:88px;} .document-closing p{font-size:11px;} .document-review{margin:14px 0;} .document-review img{width:80px;height:80px;} .customer-document footer{margin-top:14px;} }
 .document-heading>div:last-child { text-align:right; }
 .document-heading strong { font:1.5rem Georgia,serif; }
 .document-heading small { display:block; font-size:11px; }
@@ -182,7 +213,7 @@ dialog::backdrop { background:#291c17aa; backdrop-filter:blur(3px); }
   .dialog-heading{padding:18px;} .record-dialog form{padding:18px 16px 0;} .admin-form-row{grid-template-columns:1fr;} .markup-panel{gap:14px;padding:14px;} .markup-panel label{width:100px;} .markup-panel p{font-size:12px;}
   .editable-item{grid-template-columns:1fr 1fr 34px;gap:9px;} .editable-item>label:first-child{grid-column:1 / -1;} .editable-item>.item-price{grid-column:1 / 3;display:flex;gap:12px;align-items:center;} .item-price strong{margin:0;} .editable-item .item-actions{grid-column:3;grid-row:2 / 4;padding:22px 0 0;}
   .map-toolbar{padding:12px;flex-wrap:wrap;} .map-toolbar strong{display:none;} .map-toolbar button{font-size:12px;} .map-editor-grid{display:flex;flex-direction:column;height:auto;min-height:0;} .map-canvas{height:52svh;min-height:350px;order:0;} .map-tools{order:1;max-height:none;padding:16px;} .map-tool-buttons{grid-template-columns:repeat(4,1fr);} .map-tool-buttons button{padding:8px 4px;font-size:12px;}
-  .customer-project{padding:12px;} .customer-document{padding:22px 16px;} .document-heading{gap:12px;} .document-heading img{width:48px;height:47px;} .document-heading strong{font-size:1.05rem;} .document-heading h2{font-size:1.1rem;} .document-heading small{font-size:9px;} .document-heading>div:first-child{gap:6px;}
+  .customer-project{padding:12px;} .customer-document{padding:22px 16px;} .document-heading{gap:12px;}  .document-heading img{width:96px;height:92px;} .document-heading strong{font-size:1.05rem;} .document-heading h2{font-size:1.1rem;} .document-heading small{font-size:9px;} .document-heading>div:first-child{gap:6px;}
   .customer-document th,.customer-document td{padding:10px 5px;font-size:12px;} .document-meta{font-size:12px;} .document-controls{padding:12px;flex-wrap:wrap;} .customer-document footer{font-size:10px;flex-wrap:wrap;} .plan-legend>div{flex-wrap:wrap;} .plan-legend small{font-size:12px;}
 }
 /* Project notebook and locked-view planting studio. */

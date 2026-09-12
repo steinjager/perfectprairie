@@ -40,6 +40,35 @@ const client=()=>({id:randomUUID(),firstName:"Test",lastName:"Gardener",organiza
 const project=clientId=>({id:randomUUID(),clientId,name:"Prairie plan",serviceType:"native-landscape",status:"lead",siteAddress:"PRIVATE_ADDRESS_SECRET",description:"INTERNAL_FIELD_SECRET",publicSummary:"Native habitat planting",targetStartDate:"2026-10-01"});
 const doc=projectId=>({id:randomUUID(),kind:"estimate",projectId,status:"sent",issueDate:"2026-09-10",dueDate:"2026-10-10",markupPercent:30,notes:"Customer payment terms",items:[{description:"Site preparation",quantity:2,unitCost:"125.50"},{description:"Native plants",quantity:"3.125",unitCost:"40.00"}]});
 
+test("location details and private area notes persist; estimate maps are safe independent snapshots",async t=>{
+  const {write,request,DB}=setup(t),c=client(),p=project(c.id),d=doc(p.id);
+  await write("/api/admin/clients","POST",c);await write("/api/admin/projects","POST",p);
+  DB.sqlite.prepare("UPDATE projects SET target_start_date='2026-10-01' WHERE id=?").run(p.id);
+  await write("/api/admin/projects","PATCH",{...p,revision:0},200);
+  assert.equal(DB.sqlite.prepare("SELECT target_start_date FROM projects WHERE id=?").get(p.id).target_start_date,"2026-10-01");
+  const map={center:[40.69,-89.59],zoom:18,features:[{id:randomUUID(),kind:"area",title:"Prairie one",color:"#cc8844",points:[[40.69,-89.59],[40.691,-89.59],[40.691,-89.589]],plants:"PRIVATE_SEED_RESEARCH",notes:"PRIVATE_AREA_NOTES"}]};
+  const details={clientId:c.id,name:"Updated location",serviceType:"consultation",siteAddress:"Bushnell",description:"PRIVATE_SITE_NOTES"};
+  const saved=await write("/api/admin/project-map","PATCH",{id:p.id,revision:1,map,details},200);
+  assert.equal(saved.project.name,"Updated location");assert.match(saved.project.mapJson,/PRIVATE_AREA_NOTES/);
+  await write("/api/admin/project-map","PATCH",{id:p.id,revision:1,map:null},409);
+  await write("/api/admin/documents","POST",{...d,planAction:"attach"});
+  const snapshot=DB.sqlite.prepare("SELECT plan_json FROM estimates WHERE id=?").get(d.id).plan_json;
+  assert.match(snapshot,/Prairie one/);assert.doesNotMatch(snapshot,/PRIVATE_/);
+  await write("/api/admin/project-map","PATCH",{id:p.id,revision:2,map:null},200);
+  assert.equal(DB.sqlite.prepare("SELECT map_json FROM projects WHERE id=?").get(p.id).map_json,null);
+  assert.equal(DB.sqlite.prepare("SELECT plan_json FROM estimates WHERE id=?").get(d.id).plan_json,snapshot);
+  await write("/api/admin/documents","PATCH",{...d,revision:0,planAction:"keep"},200);
+  assert.equal(DB.sqlite.prepare("SELECT plan_json FROM estimates WHERE id=?").get(d.id).plan_json,snapshot);
+  DB.beforeBatch=()=>DB.sqlite.prepare("UPDATE estimates SET revision=revision+1 WHERE id=?").run(d.id);
+  await write("/api/admin/documents","PATCH",{...d,revision:1,planAction:"remove"},409);
+  assert.equal(DB.sqlite.prepare("SELECT plan_json FROM estimates WHERE id=?").get(d.id).plan_json,snapshot);
+  const shared=await write("/api/admin/project-map","PATCH",{id:p.id,revision:3,map,sharing:true},200);
+  const html=await (await request("/projects/"+shared.project.shareToken)).text();
+  assert.doesNotMatch(html,/PRIVATE_AREA_NOTES|PRIVATE_SEED_RESEARCH|PRIVATE_SITE_NOTES/);
+  await write("/api/admin/documents","PATCH",{...d,revision:2,planAction:"remove"},200);
+  assert.equal(DB.sqlite.prepare("SELECT plan_json FROM estimates WHERE id=?").get(d.id).plan_json,null);
+});
+
 test("project items persist, archive safely, protect media and reject foreign map placements",async t=>{
   const {write,request,DB}=setup(t),c=client(),p=project(c.id),p2=project(c.id);
   await write("/api/admin/clients","POST",c);await write("/api/admin/projects","POST",p);await write("/api/admin/projects","POST",p2);

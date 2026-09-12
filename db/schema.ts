@@ -45,6 +45,7 @@ export const projects = sqliteTable("projects", {
 ]);
 
 export const estimates = sqliteTable("estimates", {
+  planJson: text("plan_json"),
   markupBps: integer("markup_bps").notNull().default(0),
   id: text("id").primaryKey(),
   projectId: text("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),

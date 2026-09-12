@@ -2,8 +2,9 @@
 import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
 import type {} from "@geoman-io/leaflet-geoman-free";
-import type { ProjectItem } from "@/lib/admin-types";
-import { areaLabel, symbols, validateMap, type MapFeature, type Position, type ProjectMap } from "@/lib/operations";
+import type { ProjectItem, Project, Client } from "@/lib/admin-types";
+import { areaLabel, symbols, services, validateMap, type MapFeature, type Position, type ProjectMap } from "@/lib/operations";
+import { addRoadLabels } from "@/lib/road-labels";
 import { defaultCenter, detailImageUrl, projectPoint } from "@/lib/map";
 import { imageryLayer } from "@/lib/imagery-layer";
 
@@ -14,14 +15,16 @@ const layerPoints = (layer: Leaflet.Polyline | Leaflet.Polygon): Position[] => {
   const raw = layer.getLatLngs(), ring = Array.isArray(raw[0]) ? raw[0] : raw;
   return (ring as Leaflet.LatLng[]).map(p => [p.lat, p.lng]);
 };
-export default function MapWorkspace({ initial, projectName, items = [], onSave, onClose }: { initial: ProjectMap | null; projectName: string; items?: ProjectItem[]; onSave: (map: ProjectMap) => Promise<void>; onClose: () => void }) {
+export default function MapWorkspace({ initial, project, clients, items = [], onSave, onClose }: { initial: ProjectMap | null; project: Project; clients: Client[]; items?: ProjectItem[]; onSave: (map: ProjectMap, details: Pick<Project,"clientId"|"name"|"siteAddress"|"description"|"serviceType">) => Promise<void>; onClose: () => void }) {
+  const [details,setDetails]=useState({clientId:project.clientId,name:project.name,siteAddress:project.siteAddress,description:project.description,serviceType:project.serviceType});
   const [plan, setPlan] = useState<ProjectMap>(initial || { center: defaultCenter, zoom: 17, features: [] });
   const [tool, setTool] = useState<Tool>("select"), [stage, setStage] = useState<Stage>("positioning");
   const [selected, setSelected] = useState(""), [moving, setMoving] = useState(false), [vertex, setVertex] = useState<number | null>(null);
   const [notice, setNotice] = useState("Position the site, then lock the map to begin planning."), [ready, setReady] = useState(false), [saving, setSaving] = useState(false);
   const [corners, setCorners] = useState(0), [progress, setProgress] = useState<number | null>(null), [coords, setCoords] = useState("");
   const [history, setHistory] = useState<MapFeature[][]>([]), [future, setFuture] = useState<MapFeature[][]>([]);
-  const [panel, setPanel] = useState<"items" | "plan">("plan");
+  const [panel, setPanel] = useState<"items" | "plan" | "save">("plan");
+  const inspector=useRef<HTMLElement>(null);
   const container = useRef<HTMLDivElement>(null), mapRef = useRef<Leaflet.Map | null>(null), api = useRef<typeof Leaflet | null>(null);
   const layerRefs = useRef(new Map<string, Layer>()), draft = useRef<Leaflet.Polyline | null>(null), overlay = useRef<Leaflet.ImageOverlay | null>(null);
   const imageUrl = useRef(""), controller = useRef<AbortController | null>(null), dirty = useRef(false), touched = useRef(false);
@@ -79,12 +82,14 @@ export default function MapWorkspace({ initial, projectName, items = [], onSave,
   }
   useEffect(() => {
     let disposed = false;
+    let removeRoads: (()=>void)|undefined;
     void (async () => {
       const L = await import("leaflet"); await import("@geoman-io/leaflet-geoman-free");
       if (disposed || !container.current) return;
       api.current = L;
       const map = L.map(container.current, { minZoom: 3, maxZoom: 21, zoomSnap: 0, doubleClickZoom: false }).setView(state.current.plan.center, state.current.plan.zoom);
       mapRef.current = map; imageryLayer(L).addTo(map);
+      removeRoads=addRoadLabels(L,map);
       L.control.scale({ imperial: true, metric: false }).addTo(map);
       map.pm.setGlobalOptions({ allowSelfIntersection: false, removeLayerBelowMinVertexCount: false, finishOnEnter: true });
       if (initial?.frame) {
@@ -113,7 +118,7 @@ export default function MapWorkspace({ initial, projectName, items = [], onSave,
     };
     window.addEventListener("beforeunload", before); window.addEventListener("keydown", keyboard);
     const layers = layerRefs.current;
-    return () => { disposed = true; controller.current?.abort(); if (imageUrl.current) URL.revokeObjectURL(imageUrl.current); mapRef.current?.remove(); mapRef.current = null; layers.clear(); window.removeEventListener("beforeunload", before); window.removeEventListener("keydown", keyboard); };
+    return () => { disposed = true; removeRoads?.(); controller.current?.abort(); if (imageUrl.current) URL.revokeObjectURL(imageUrl.current); mapRef.current?.remove(); mapRef.current = null; layers.clear(); window.removeEventListener("beforeunload", before); window.removeEventListener("keydown", keyboard); };
     // One Leaflet instance; handlers read latest plan/tool refs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -209,10 +214,11 @@ export default function MapWorkspace({ initial, projectName, items = [], onSave,
     observer.observe(container.current); return () => observer.disconnect();
   }, [ready]);
   async function save() {
+    if (details.clientId !== project.clientId && !confirm("Move this project to another client folder? Its documents and shared project page will use the new client.")) return;
     if (state.current.stage !== "locked") { setNotice("Lock the map position before saving this view."); return; }
     if (draft.current && layerPoints(draft.current).length) { setNotice("Finish or cancel the area before saving."); return; }
     savingRef.current = true; setSaving(true);
-    try { const next = validateMap(state.current.plan); if (next) await onSave(next); dirty.current = false; }
+    try { const next = validateMap(state.current.plan); if (next) await onSave(next,details); dirty.current = false; }
     catch (e) { setNotice(e instanceof Error ? e.message : "Could not save. Your plan is still here."); } finally { savingRef.current = false; setSaving(false); }
   }
   function timeTravel(redo: boolean) {
@@ -227,8 +233,8 @@ export default function MapWorkspace({ initial, projectName, items = [], onSave,
   return <section className={"map-studio stage-" + stage} aria-label="Project map editor">
     <header className="studio-heading">
       <button disabled={saving} onClick={() => { if (!dirty.current && !corners || confirm("Discard unsaved map changes?")) onClose(); }}>← Back to project</button>
-      <div className="studio-title"><p>Planting studio</p><h1>{projectName}</h1></div>
-      <button className="admin-save" disabled={saving || !ready || stage !== "locked" || corners > 0} onClick={() => void save()}>{saving ? "Saving…" : "Save map & close"}</button>
+      <div className="studio-title"><p>Planting studio</p><h1>{details.name}</h1></div>
+      <button className="admin-save" disabled={saving || !ready || stage !== "locked" || corners > 0} onClick={() => {setPanel("save");setTimeout(()=>inspector.current?.scrollIntoView({block:"nearest",behavior:"smooth"}),0);}}>{saving ? "Saving…" : "Save map & close"}</button>
     </header>
     <div className="map-position-bar">
       <div className="studio-stage"><span aria-hidden="true">{stage === "locked" ? "02" : "01"}</span><div><strong>{stage === "locked" ? "Map locked" : stage === "loading" ? "Loading detailed imagery" : "Position the site"}</strong><small>{stage === "locked" ? "Choose a tool to shape your plan." : "Pan and zoom to frame the whole project."}</small></div></div>
@@ -242,20 +248,22 @@ export default function MapWorkspace({ initial, projectName, items = [], onSave,
     </div>}
     <div className="studio-layout" inert={saving}><div className={"studio-map-wrap tool-" + (tool === "select" ? "select" : "place")}><div className="map-canvas" ref={container}/>
       {stage === "loading" && <div className="map-loading" role="status"><span className="loading-flower" aria-hidden="true">🌼</span><h3>Bringing the landscape into focus</h3><p>{notice}</p><progress max={100} value={progress ?? undefined} aria-label="Detailed imagery download"/><small>{progress === null ? "Waiting for imagery provider…" : progress + "% downloaded"}</small><button onClick={unlock}>Cancel loading</button></div>}
-    </div><aside className="studio-inspector" aria-label="Plan inspector">
-      <div className="studio-panel-tabs" role="group" aria-label="Inspector panels"><button aria-pressed={panel === "plan"} onClick={() => setPanel("plan")}>Plan <span>{plan.features.length}</span></button><button aria-pressed={panel === "items"} onClick={() => setPanel("items")}>Items <span>{activeItems.length}</span></button></div>
+    </div><aside className="studio-inspector" aria-label="Plan inspector" ref={inspector}>
+      <div className="studio-panel-tabs" role="group" aria-label="Inspector panels"><button aria-pressed={panel === "plan"} onClick={() => setPanel("plan")}>Plan <span>{plan.features.length}</span></button><button aria-pressed={panel === "items"} onClick={() => setPanel("items")}>Items <span>{activeItems.length}</span></button><button aria-pressed={panel === "save"} onClick={()=>setPanel("save")}>Details</button></div>
       <div className="studio-panel-body">
       {panel === "plan" ? <>
         {feature && stage === "locked" && tool === "select" && <section className="map-feature-editor" key={feature.id}>
           <div className="studio-section-heading"><h2>{feature.kind === "area" ? "Planting area" : feature.kind === "text" ? "Text note" : "Map symbol"}</h2><button aria-label="Deselect feature" onClick={() => setSelected("")}>×</button></div>
           {feature.kind === "area" && <div className="studio-area-reading"><strong>{areaLabel(feature.points)}</strong><span>{feature.points.length} corners</span></div>}
           <label>Title / text<input key={feature.title} maxLength={120} defaultValue={feature.title} onBlur={e => { const title = e.target.value.trim(); if (title && title !== feature.title) edit(feature.id, { title }); else if (!title) e.target.value = feature.title; }}/></label>
+          {feature.kind==="area"&&<><label>Seed mixes / plants<textarea key={feature.plants||"plants"} rows={3} maxLength={2000} defaultValue={feature.plants||""} onBlur={e=>{if(e.target.value!== (feature.plants||""))edit(feature.id,{plants:e.target.value});}}/></label><label>Internal area notes<textarea key={feature.notes||"notes"} rows={3} maxLength={4000} defaultValue={feature.notes||""} onBlur={e=>{if(e.target.value!== (feature.notes||""))edit(feature.id,{notes:e.target.value});}}/></label><small>Planting research and notes stay private.</small></>}
           <label className="studio-color-field">Color<input type="color" value={feature.color} onChange={e => edit(feature.id, { color: e.target.value })}/></label>
           {feature.kind === "area" && <><button aria-pressed={moving} onClick={() => setMoving(v => !v)}>{moving ? "Edit corners" : "Move whole shape"}</button><p className="field-hint">{moving ? "Drag the area to move it. Choose Edit corners to reshape it." : "Drag corners to reshape; drag a midpoint to add a corner."}</p><button disabled={vertex === null || feature.points.length <= 3 || moving} onClick={() => { if (vertex !== null) edit(feature.id, { points: feature.points.filter((_, i) => i !== vertex) }); setVertex(null); }}>Remove selected corner</button></>}
           <button className="danger" onClick={() => { change({ ...plan, features: plan.features.filter(f => f.id !== feature.id) }); setSelected(""); }}>Remove feature</button>
         </section>}
         <section><h2>On this map</h2>{plan.features.length ? <div className="map-feature-list">{plan.features.map(f => <button key={f.id} disabled={stage !== "locked"} aria-pressed={f.id === selected && tool === "select"} onClick={() => { if (choose("select", false)) selectFeature(f.id); }}><span aria-hidden="true">{f.kind === "area" ? "▱" : f.kind === "text" ? "T" : symbols[f.symbol || "prairie"]}</span><span>{f.title}<small>{f.kind === "area" ? areaLabel(f.points) : f.projectItemId ? "Project item" : f.kind === "text" ? "Text note" : "Landscape symbol"}</small></span></button>)}</div> : <p className="studio-empty">{stage === "locked" ? "Draw your first planting area or place a symbol using the tools above." : "Frame your site and lock the map to start your planting plan."}</p>}</section>
-      </> : <section><h2>Project items</h2><p className="field-hint">Choose an item, then click the map to place it. Only its label is shared; billing quantities stay unchanged.</p><div className="map-item-palette">{activeItems.map(item => <button key={item.id} disabled={stage !== "locked"} aria-pressed={tool === `item:${item.id}`} onClick={() => choose(`item:${item.id}`)}><span aria-hidden="true">🌾</span><span><strong>{item.name}</strong><small>{item.quantityMilli / 1000} {item.unit} · {plan.features.filter(f => f.projectItemId === item.id).length} placed</small></span></button>)}</div>{!activeItems.length && <p className="studio-empty">Add materials and notes in the project notebook to place them here.</p>}</section>}
+      </> : panel==="items" ? <section><h2>Project items</h2><p className="field-hint">Choose an item, then click the map to place it. Only its label is shared; billing quantities stay unchanged.</p><div className="map-item-palette">{activeItems.map(item => <button key={item.id} disabled={stage !== "locked"} aria-pressed={tool === `item:${item.id}`} onClick={() => choose(`item:${item.id}`)}><span aria-hidden="true">🌾</span><span><strong>{item.name}</strong><small>{item.quantityMilli / 1000} {item.unit} · {plan.features.filter(f => f.projectItemId === item.id).length} placed</small></span></button>)}</div>{!activeItems.length && <p className="studio-empty">Add materials and notes in the project notebook to place them here.</p>}</section>
+      : <form className="map-save-details" onSubmit={e=>{e.preventDefault();void save();}} onChange={()=>{dirty.current=true;}}><h2>Save this location</h2><label>Client / folder<select required value={details.clientId} onChange={e=>setDetails({...details,clientId:e.target.value})}>{clients.map(c=><option key={c.id} value={c.id}>{c.firstName} {c.lastName}</option>)}</select></label><label>Location / project name<input required maxLength={180} value={details.name} onChange={e=>setDetails({...details,name:e.target.value})}/></label><label>Service<select value={details.serviceType} onChange={e=>setDetails({...details,serviceType:e.target.value})}>{Object.entries(services).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label><label>Site address<input maxLength={300} value={details.siteAddress} onChange={e=>setDetails({...details,siteAddress:e.target.value})}/></label><label>Internal site notes<textarea rows={3} maxLength={2000} value={details.description} onChange={e=>setDetails({...details,description:e.target.value})}/></label><h2>Measured areas</h2>{plan.features.filter(f=>f.kind==="area").map(f=><div key={f.id}><strong>{f.title}</strong><p>{areaLabel(f.points)}</p><p>{f.plants||"No seed mix / plants entered"}</p></div>)}<p className="field-hint">Edit an area in Plan to add its seed mix, plants and notes. Save first, then attach this layout from an estimate.</p><button className="admin-save" disabled={stage!=="locked"||saving||corners>0}>Save location</button></form>}
       </div>
     </aside>
       <div className="studio-context" aria-label="Current map action">

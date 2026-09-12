@@ -1,5 +1,5 @@
 export type Position = [number, number]; // latitude, longitude
-export type MapFeature = { id: string; kind: "area" | "symbol" | "text"; title: string; color: string; points: Position[]; symbol?: string; projectItemId?: string };
+export type MapFeature = { id: string; kind: "area" | "symbol" | "text"; title: string; color: string; points: Position[]; symbol?: string; projectItemId?: string; plants?: string; notes?: string };
 export type MapFrame = { provider: "usda-naip"; bounds: [number, number, number, number] };
 export type ProjectMap = { center: Position; zoom: number; features: MapFeature[]; frame?: MapFrame };
 export const symbols: Record<string, string> = { prairie: "🌾", flowers: "🌼", tree: "🌳", water: "💧", habitat: "🦋", rock: "🪨" };
@@ -110,6 +110,11 @@ export function validateMap(value: unknown): ProjectMap | null {
     const points = f.points.map(position);
     if (f.kind === "area" && areaSqMeters(points) < .01) throw new InputError("Draw an area with at least three different corners.");
     if (f.kind === "area" && (new Set(points.map(p=>p.join(","))).size!==points.length || hasCrossingEdges(points))) throw new InputError("Area edges must not cross or repeat corners. Adjust the shape before saving.");
-    return { id: featureId, kind: f.kind, title: text(f.title, "Map label", 120, true), color: f.color, points, ...(f.kind === "symbol" ? { symbol: f.symbol } : {}), ...(f.projectItemId ? { projectItemId: id(f.projectItemId) } : {}) };
+    return { id: featureId, kind: f.kind, title: text(f.title, "Map label", 120, true), color: f.color, points, ...(f.kind === "symbol" ? { symbol: f.symbol } : {}), ...(f.projectItemId ? { projectItemId: id(f.projectItemId) } : {}), ...(f.plants ? {plants:text(f.plants,"Seed mixes / plants",2000)} : {}), ...(f.notes ? {notes:text(f.notes,"Internal area notes",4000)} : {}) };
   }) };
+}
+/** Only customer-facing labels and geometry may leave the admin boundary. */
+export function customerMap(map: ProjectMap | null): ProjectMap | null {
+  if (!map) return null;
+  return {...map,features:map.features.map(f=>({id:f.id,kind:f.kind,title:f.title,color:f.color,points:f.points,...(f.symbol?{symbol:f.symbol}:{})}))};
 }

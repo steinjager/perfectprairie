@@ -13,3 +13,5 @@ Positioning uses the existing USGS National Map imagery cache. Locking loads a d
 - Illinois ISGS high-resolution services were considered but not used: their current terms restrict commercial use. https://isgs.illinois.edu/terms-of-use/
 
 Leaflet-Geoman free (MIT) supplies the interactive polygon drawing/editing engine. Map labels remain text nodes, not injected HTML. Project item costs, supplier links, private notes and photos are not copied into customer-facing labels.
+
+Street-name overlays use USGS National Map transportation labels (layers 16–21): https://carto.nationalmap.gov/arcgis/rest/services/transportation/MapServer . Creator: USGS; federal public-domain map data, with USGS attribution retained on maps. Label availability and density vary by zoom and locality; these are navigation references, not surveyed boundaries.

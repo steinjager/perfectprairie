@@ -26,7 +26,7 @@ async function lock() {
   await button("LOCK MAP POSITION").click();
   await page.getByText("Map locked", { exact: true }).waitFor({ timeout: 60000 });
   await page.locator(".map-canvas.leaflet-container").waitFor();
-  assert.ok(await page.locator(".leaflet-image-layer").evaluate(img => img.complete && img.naturalWidth >= 2000));
+  assert.ok(await page.locator(".leaflet-overlay-pane .leaflet-image-layer").evaluate(img => img.complete && img.naturalWidth >= 2000));
 }
 try {
   await openProject(); await button("Add map").click();
@@ -77,7 +77,11 @@ try {
   assert.equal(await page.locator(".admin-topbar").count(), 0, "Map has one project heading, not competing page headers");
   console.log("PASS item placement on top of an area, repeated placement and click-off tool");
   await page.screenshot({ path: join(artifacts, "map-desktop.png"), fullPage: true });
-  await button("Save map & close").click(); await button("Create estimate").click();
+  await button("Plan 3").click();
+  await page.locator(".map-feature-list").getByRole("button", { name: /^Planting area 1/ }).click();
+  await page.getByRole("textbox", { name: "Seed mixes / plants", exact: true }).fill("Little bluestem and coneflowers");
+  await page.getByRole("textbox", { name: "Internal area notes", exact: true }).fill("PRIVATE FIELD RESEARCH");
+  await button("Save map & close").click(); await button("Save location").click(); await button("Create estimate").click();
   assert.equal(await page.getByRole("textbox", { name: "Description", exact: true }).inputValue(), "Test seed mix (lb)");
   assert.equal(await page.getByRole("spinbutton", { name: "Quantity", exact: true }).inputValue(), "2.5");
   await button("Save estimate").click(); await page.getByRole("heading", { name: "Project documents", exact: true }).waitFor();
@@ -86,6 +90,9 @@ try {
   console.log("PASS project items copy into a priced estimate");
   await openProject(); await button("Open map studio").click(); await lock();
   await button("Plan 3").waitFor();
+  await page.locator(".map-feature-list").getByRole("button", { name: /^Planting area 1/ }).click();
+  await expect(page.getByRole("textbox", { name: "Seed mixes / plants", exact: true })).toHaveValue("Little bluestem and coneflowers");
+  await expect(page.getByRole("textbox", { name: "Internal area notes", exact: true })).toHaveValue("PRIVATE FIELD RESEARCH");
   console.log("PASS saved map extent and placements reopen");
   await page.setViewportSize({ width: 390, height: 844 });
   await button("Draw area").click();
